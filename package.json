@@ -1,0 +1,30 @@
+{
+  "name": "nuxt4-feature-based-template",
+  "version": "2.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "create:feature": "node config/scripts/create-feature.mjs",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@pinia/nuxt": "^0.11.3",
+    "nuxt": "^4.3.1",
+    "pinia": "^3.0.4",
+    "vue": "^3.5.28",
+    "vue-router": "^5.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.3",
+    "typescript": "^5.9.3",
+    "vue-tsc": "^3.2.4"
+  }
+}
