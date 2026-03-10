@@ -18,6 +18,7 @@ export default defineNuxtConfig({
 
   modules: [
     "@pinia/nuxt",
+    '@nuxt/ui',
 
     function featureComponentsModule(_options, nuxt) {
       setupFeatureComponents(nuxt);

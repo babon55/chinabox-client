@@ -1,13 +1,18 @@
 <template>
   <NuxtLayout>
     <main>
-      <NuxtPage />
+      <UApp>
+        <NuxtPage />
+      </UApp>
     </main>
   </NuxtLayout>
 </template>
 
 <script setup lang="ts">
-// App layout wrapper
+import { useShortcut } from "vue-shortcut-manager";
+
+useShortcut('shift+u',()=>alert('hello'))
+useShortcut('b o',()=>alert('b o'))
 </script>
 
 <style>
@@ -22,7 +27,7 @@ body {
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
     Cantarell, sans-serif;
   color: #f1f1f1;
-  background: #0f0f0f;
+  background: #ffffff;
 }
 
 main {

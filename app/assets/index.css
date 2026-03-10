@@ -9,3 +9,7 @@
 body {
   font-family: sans-serif;
 }
+
+@import "tailwindcss";
+@import "@nuxt/ui";
+
