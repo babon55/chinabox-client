@@ -1,15 +1,19 @@
-* {
+/* @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap'); */
+@import "~/shared/styles/variables.css";
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   outline: none;
-  border: none;
   box-sizing: border-box;
 }
 
 body {
-  font-family: sans-serif;
+  font-family: var(--font-body);
+  color: var(--dark);
+  background: var(--surface);
+  -webkit-font-smoothing: antialiased;
 }
-
-@import "tailwindcss";
-@import "@nuxt/ui";
 

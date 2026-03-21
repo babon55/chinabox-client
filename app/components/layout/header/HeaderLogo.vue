@@ -9,7 +9,7 @@ defineProps<{
 <template>
   <NuxtLink to="/" class="logo">
     <div class="logo-icon">
-      <img src="C:\Users\User\Desktop\online-shop\app\assets\images\logo_4.png" class="logo-icon"></img>
+      <img src="" class="logo-icon"></img>
     </div>
     <div class="logo-text">
       <span class="logo-main">ChinaBox</span>

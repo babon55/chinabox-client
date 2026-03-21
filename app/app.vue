@@ -1,50 +1,39 @@
 <template>
-  <NuxtLayout>
-    <main>
-      <UApp>
-        <NuxtPage />
-      </UApp>
-    </main>
-  </NuxtLayout>
+  <UApp>         <!-- ← move UApp outside -->
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+  </UApp>
 </template>
 
 <script setup lang="ts">
 import { useShortcut } from "vue-shortcut-manager";
-
-useShortcut('shift+u',()=>alert('hello'))
-useShortcut('b o',()=>alert('b o'))
+useShortcut('shift+u', () => alert('hello'))
+useShortcut('b o', () => alert('b o'))
 </script>
 
 <style>
-* {
+
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
 body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
-    Cantarell, sans-serif;
-  color: #f1f1f1;
-  background: #ffffff;
-}
-
-main {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-  min-height: calc(100vh - 200px);
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  color: var(--dark, #0F1117);
+  background: var(--surface, #F9FAFB);
+  -webkit-font-smoothing: antialiased;
 }
 
 .page-enter-active,
 .page-leave-active {
-  transition: all 0.4s;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 .page-enter-from,
 .page-leave-to {
-  filter: blur(10px);
-  transform: translateY(10px) scale(0.7);
   opacity: 0;
+  transform: translateY(8px);
 }
 </style>

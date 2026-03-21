@@ -21,20 +21,16 @@ defineProps<{
       </button>
 
       <div class="nav-links">
-        <NuxtLink to="/" class="nav-link">
+        <NuxtLink to="/" class="nav-link" active-class="nav-link--active">
           {{ currentLang === 'tk' ? 'Baş Sahypa' : 'Главная' }}
         </NuxtLink>
-        <NuxtLink to="/deals" class="nav-link deals">
-          🔥 {{ currentLang === 'tk' ? 'Arzanladyşlar' : 'Скидки' }}
+
+        <NuxtLink to="/products" class="nav-link" active-class="nav-link--active">
+          {{ currentLang === 'tk' ? 'Harytlar' : 'Товары' }}
         </NuxtLink>
-        <NuxtLink to="/new" class="nav-link">
-          {{ currentLang === 'tk' ? 'Täze Önümler' : 'Новинки' }}
-        </NuxtLink>
-        <NuxtLink to="/track" class="nav-link">
+
+        <NuxtLink to="/orders" class="nav-link" active-class="nav-link--active">
           {{ currentLang === 'tk' ? 'Sargyt Yzarla' : 'Отследить заказ' }}
-        </NuxtLink>
-        <NuxtLink to="/about" class="nav-link">
-          {{ currentLang === 'tk' ? 'Biz Hakda' : 'О нас' }}
         </NuxtLink>
       </div>
 
@@ -78,7 +74,6 @@ defineProps<{
   display: flex;
   align-items: center;
   gap: 2px;
-  flex: 1;
 }
 
 .nav-link {
@@ -91,7 +86,6 @@ defineProps<{
   position: relative;
   white-space: nowrap;
 }
-
 .nav-link::after {
   content: '';
   position: absolute;
@@ -105,12 +99,8 @@ defineProps<{
 .nav-link:hover        { color: #0F1117; }
 .nav-link:hover::after { transform: scaleX(1); }
 
-.nav-link.router-link-active          { color: #0F1117; font-weight: 700; }
-.nav-link.router-link-active::after   { transform: scaleX(1); }
-
-.nav-link.deals       { color: #EF4444; font-weight: 700; }
-.nav-link.deals:hover { color: #DC2626; }
-.nav-link.deals::after { background: #EF4444; }
+.nav-link--active        { color: #0F1117; font-weight: 700; }
+.nav-link--active::after { transform: scaleX(1); }
 
 @media (max-width: 768px) { .nav-bar { display: none; } }
 </style>

@@ -12,18 +12,16 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   devServer: {
-    port: 1010,
+    port: 3000,
     host: "0.0.0.0",
   },
 
   modules: [
     "@pinia/nuxt",
     '@nuxt/ui',
-
     function featureComponentsModule(_options, nuxt) {
       setupFeatureComponents(nuxt);
     },
-
     function featureImportsModule(_options, nuxt) {
       setupFeatureImports(nuxt);
     },
@@ -33,6 +31,17 @@ export default defineNuxtConfig({
 
   app: {
     pageTransition: { name: "page", mode: "out-in" },
+    layoutTransition: false,
+    head: {
+      link: [
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap',
+        },
+      ],
+    },
   },
 
   watch: [

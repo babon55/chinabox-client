@@ -1,5 +1,7 @@
 import type { Lang, SignUpForm, SignUpErrors, SignUpTranslations } from '../types'
 
+const API = 'http://localhost:3001/api/v1'
+
 // ── Translations ──────────────────────────────────────────────────────────────
 const translations: Record<Lang, SignUpTranslations> = {
   tk: {
@@ -64,7 +66,6 @@ const translations: Record<Lang, SignUpTranslations> = {
 
 // ── Composable ────────────────────────────────────────────────────────────────
 export function useSignUp(lang: Ref<Lang>) {
-  // Form state
   const form = reactive<SignUpForm>({
     firstName:       '',
     lastName:        '',
@@ -78,11 +79,9 @@ export function useSignUp(lang: Ref<Lang>) {
   const errors    = reactive<SignUpErrors>({})
   const isLoading = ref(false)
   const submitted = ref(false)
+  const t         = computed<SignUpTranslations>(() => translations[lang.value])
 
-  // Translations
-  const t = computed<SignUpTranslations>(() => translations[lang.value])
-
-  // ── Password strength ──────────────────────────────────────
+  // ── Password strength ──────────────────────────────────────────────────────
   const strength = computed<number>(() => {
     const p = form.password
     if (!p) return 0
@@ -94,7 +93,7 @@ export function useSignUp(lang: Ref<Lang>) {
     return score
   })
 
-  const strengthColors = ['', '#EF4444', '#F59E0B', '#3B82F6', '#22C55E']
+  const strengthColors   = ['', '#EF4444', '#F59E0B', '#3B82F6', '#22C55E']
   const strengthLabelsTk = ['', 'Gowşak', 'Orta', 'Güýçli', 'Örän güýçli']
   const strengthLabelsRu = ['', 'Слабый', 'Средний', 'Сильный', 'Очень сильный']
 
@@ -105,50 +104,60 @@ export function useSignUp(lang: Ref<Lang>) {
       : strengthLabelsRu[strength.value] ?? ''
   )
 
-  // ── Validation ─────────────────────────────────────────────
+  // ── Validation ─────────────────────────────────────────────────────────────
   function validate(): boolean {
-    // Clear previous errors
     Object.keys(errors).forEach(k => delete (errors as Record<string, string>)[k])
     let valid = true
 
-    if (!form.firstName.trim()) {
-      errors.firstName = t.value.errFirstName; valid = false
-    }
-    if (!form.lastName.trim()) {
-      errors.lastName = t.value.errLastName; valid = false
-    }
+    if (!form.firstName.trim())  { errors.firstName = t.value.errFirstName; valid = false }
+    if (!form.lastName.trim())   { errors.lastName  = t.value.errLastName;  valid = false }
     if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
       errors.email = t.value.errEmail; valid = false
     }
-    if (!form.phone.trim()) {
-      errors.phone = t.value.errPhone; valid = false
-    }
-    if (form.password.length < 8) {
-      errors.password = t.value.errPassword; valid = false
-    }
+    if (!form.phone.trim())      { errors.phone    = t.value.errPhone;    valid = false }
+    if (form.password.length < 8){ errors.password = t.value.errPassword; valid = false }
     if (form.password !== form.confirmPassword) {
       errors.confirm = t.value.errConfirm; valid = false
     }
-    if (!form.agreeTerms) {
-      errors.terms = t.value.errTerms; valid = false
-    }
+    if (!form.agreeTerms)        { errors.terms = t.value.errTerms; valid = false }
 
     return valid
   }
 
-  // ── Submit ─────────────────────────────────────────────────
+  // ── Submit → real API ──────────────────────────────────────────────────────
   async function handleSubmit(onSuccess: () => void) {
     submitted.value = true
     if (!validate()) return
 
     isLoading.value = true
     try {
-      // TODO: replace with your real API call
-      // await $fetch('/api/auth/register', { method: 'POST', body: form })
-      await new Promise(r => setTimeout(r, 1500))
+      const data = await $fetch<{
+        accessToken:  string
+        refreshToken: string
+        customer:     { id: string; name: string; email: string; phone: string }
+      }>(`${API}/customer/register`, {
+        method: 'POST',
+        body: {
+          name:     `${form.firstName} ${form.lastName}`.trim(),
+          email:    form.email,
+          phone:    form.phone,
+          address:  '',
+          password: form.password,
+        },
+      })
+
+      // Persist tokens so the rest of the app can use them
+      if (import.meta.client) {
+        localStorage.setItem('customer_access_token',  data.accessToken)
+        localStorage.setItem('customer_refresh_token', data.refreshToken)
+        localStorage.setItem('customer_user', JSON.stringify(data.customer))
+      }
+
       onSuccess()
-    } catch (err) {
-      console.error('Registration failed:', err)
+    } catch (err: any) {
+      // Show the server error message if available
+      const msg = err?.data?.message ?? err?.message ?? 'Registration failed'
+      errors.email = msg   // display under email field (most common conflict)
     } finally {
       isLoading.value = false
     }

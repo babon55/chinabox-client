@@ -3,7 +3,7 @@ import SignUpSide from '../components/SignUpSide.vue'
 import SignUpForm from '../components/SignUpForm.vue'
 import type { Lang } from '../types'
 
-definePageMeta({ layout: 'auth' })
+definePageMeta({ layout: 'default' })
 
 const currentLang = ref<Lang>('tk')
 
