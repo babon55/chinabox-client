@@ -26,8 +26,17 @@
     "vue-shortcut-manager": "^1.0.3"
   },
   "devDependencies": {
+    "@nuxt/eslint-config": "^1.15.2",
     "@types/node": "^25.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.58.0",
+    "@typescript-eslint/parser": "^8.58.0",
+    "eslint": "^10.1.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-vue": "^10.8.0",
+    "prettier": "^3.8.1",
     "typescript": "^5.9.3",
+    "vue-eslint-parser": "^10.4.0",
     "vue-tsc": "^3.2.4"
   }
 }

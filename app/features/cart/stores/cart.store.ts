@@ -1,16 +1,20 @@
 import { defineStore } from 'pinia'
 import type { CartItem, CartSummary } from '../types'
+import { useRuntimeConfig } from '#app'
 
-const API = 'http://localhost:3001/api/v1'
+// ── SelectedOptions type ──────────────────────────────────────────────────────
+export type SelectedOptions = Record<string, string>  // optionId → chosen value
 
 // ── Helper: refresh customer token silently ───────────────────────────────────
-async function refreshCustomerToken(): Promise<string | null> {
+async function refreshCustomerToken(apiBase?: string): Promise<string | null> {
   const refreshToken = localStorage.getItem('customer_refresh_token')
   if (!refreshToken) return null
 
+  const base = apiBase || useRuntimeConfig().public.apiBase
+
   try {
     const data = await $fetch<{ accessToken: string; refreshToken: string }>(
-      `${API}/customer/refresh`,
+      `${base}/customer/refresh`,
       { method: 'POST', body: { refreshToken } }
     )
     localStorage.setItem('customer_access_token',  data.accessToken)
@@ -23,6 +27,12 @@ async function refreshCustomerToken(): Promise<string | null> {
     localStorage.removeItem('customer_user')
     return null
   }
+}
+
+// ── Options key: same product + different options = different cart line ───────
+function optionsKey(opts?: SelectedOptions): string {
+  if (!opts || !Object.keys(opts).length) return ''
+  return Object.keys(opts).sort().map(k => `${k}:${opts[k]}`).join('|')
 }
 
 export const useCartStore = defineStore('cart', () => {
@@ -57,8 +67,14 @@ export const useCartStore = defineStore('cart', () => {
     return { subtotal, discount, shipping, total }
   })
 
-  function addItem(item: CartItem) {
-    const existing = items.value.find(i => i.id === item.id)
+  // ── addItem: same product + same options → increment qty
+  //            same product + different options → separate line ────────────────
+  function addItem(item: CartItem & { options?: SelectedOptions }) {
+    console.log('Cart addItem:', item.id, 'options:', item.options)
+    const key      = optionsKey(item.options)
+    const existing = items.value.find(
+      i => i.id === item.id && optionsKey((i as any).options) === key
+    )
     if (existing) {
       existing.quantity = Math.min(existing.quantity + item.quantity, 99)
     } else {
@@ -67,14 +83,22 @@ export const useCartStore = defineStore('cart', () => {
     _save()
   }
 
-  function updateQuantity(id: string, qty: number) {
+  // ── updateQuantity: supports optional options key ─────────────────────────
+  function updateQuantity(id: string, qty: number, options?: SelectedOptions) {
     if (qty < 1) return
-    const item = items.value.find(i => i.id === id)
+    const key  = optionsKey(options)
+    const item = items.value.find(
+      i => i.id === id && optionsKey((i as any).options) === key
+    )
     if (item) { item.quantity = qty; _save() }
   }
 
-  function removeItem(id: string) {
-    items.value = items.value.filter(i => i.id !== id)
+  // ── removeItem: supports optional options key ─────────────────────────────
+  function removeItem(id: string, options?: SelectedOptions) {
+    const key   = optionsKey(options)
+    items.value = items.value.filter(
+      i => !(i.id === id && optionsKey((i as any).options) === key)
+    )
     _save()
   }
 
@@ -93,6 +117,9 @@ export const useCartStore = defineStore('cart', () => {
   async function checkout(note?: string): Promise<boolean> {
     if (!import.meta.client) return false
 
+    const config = useRuntimeConfig()
+    const API = config.public.apiBase
+
     let token = localStorage.getItem('customer_access_token')
     if (!token) { navigateTo('/signin'); return false }
 
@@ -106,14 +133,22 @@ export const useCartStore = defineStore('cart', () => {
     checkoutLoading.value = true
     checkoutError.value   = null
 
+    console.log('Checkout cart items:', items.value.map(i => ({ id: i.id, options: i.options })))
     const orderBody = {
-      lines: items.value.map(i => ({
-        productId: i.id,
-        qty:       i.quantity,
-        unitPrice: i.price,
-      })),
+      lines: items.value.map(i => {
+        const opts = (i as any).options
+        // Ensure options is a plain JSON-serializable object (not a Vue Proxy)
+        const plainOpts = opts && typeof opts === 'object' ? JSON.parse(JSON.stringify(opts)) : (opts ?? {})
+        return {
+          productId: i.id,
+          qty:       i.quantity,
+          unitPrice: i.price,
+          options:   plainOpts,
+        }
+      }),
       note,
     }
+    console.log('Checkout orderBody:', orderBody)
 
     try {
       const order = await $fetch<{ id: string }>(`${API}/customer/orders`, {
@@ -130,10 +165,9 @@ export const useCartStore = defineStore('cart', () => {
 
       // ── Auto-refresh on 401 ────────────────────────────────────────────────
       if (status === 401) {
-        const newToken = await refreshCustomerToken()
+        const newToken = await refreshCustomerToken(API)
 
         if (!newToken) {
-          // Refresh failed — session dead, force re-login
           navigateTo('/signin')
           return false
         }

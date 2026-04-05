@@ -1,7 +1,8 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'default' })
 
-const API = 'http://localhost:3001/api/v1'
+const config = useRuntimeConfig()
+const API   = config.public.apiBase
 
 const lang = ref<'tk' | 'ru'>('tk')
 onMounted(() => {

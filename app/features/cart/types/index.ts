@@ -11,6 +11,8 @@ export interface CartItem {
   size?:     string
   seller:    string
   inStock:   boolean
+  options?:  Record<string, string>
+  optionsDisplay?:  { name: string; value: string }[]
 }
 
 export interface CartSummary {

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm list:*)",
+      "Bash(pnpm add:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm build:*)"
+    ]
+  }
+}

@@ -1,134 +1,245 @@
 <script setup lang="ts">
 type Lang = 'tk' | 'ru'
 
-defineProps<{
-  currentLang: Lang
-}>()
+defineProps<{ currentLang: Lang }>()
+const emit = defineEmits<{ (e: 'close'): void }>()
 
-const emit = defineEmits<{
-  (e: 'close'): void
-}>()
+const signinStore = useSigninStore()
+const cartStore   = useCartStore()
 
 const searchQuery = ref('')
+const router      = useRouter()
+
+function handleSearch() {
+  if (!searchQuery.value.trim()) return
+  router.push(`/products?search=${encodeURIComponent(searchQuery.value)}`)
+  emit('close')
+}
+
+function handleLogout() {
+  signinStore.logout()
+  emit('close')
+}
+
+const initials = computed(() => {
+  if (!signinStore.user?.name) return '?'
+  return signinStore.user.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+})
 </script>
 
 <template>
-  <Transition name="mobile-slide">
-    <div class="mobile-menu">
-      <!-- Search -->
-      <div class="mobile-search">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+  <div class="mobile-menu">
+
+    <!-- Search -->
+    <div class="search-wrap">
+      <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input
+        v-model="searchQuery"
+        class="search-input"
+        :placeholder="currentLang === 'tk' ? 'Haryt gözle...' : 'Поиск товаров...'"
+        @keydown.enter="handleSearch"
+      />
+      <button v-if="searchQuery" class="search-go" @click="handleSearch">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
         </svg>
-        <input
-          v-model="searchQuery"
-          :placeholder="currentLang === 'tk' ? 'Haryt gözle...' : 'Поиск товаров...'"
-          class="mobile-search-input"
-        />
-      </div>
+      </button>
+    </div>
 
-      <!-- Links -->
-      <NuxtLink to="/"      class="mobile-link" @click="emit('close')">{{ currentLang === 'tk' ? 'Baş Sahypa'     : 'Главная'             }}</NuxtLink>
-      <NuxtLink to="/deals" class="mobile-link" @click="emit('close')">🔥 {{ currentLang === 'tk' ? 'Arzanladyşlar' : 'Скидки'              }}</NuxtLink>
-      <NuxtLink to="/new"   class="mobile-link" @click="emit('close')">{{ currentLang === 'tk' ? 'Täze Önümler'   : 'Новинки'             }}</NuxtLink>
-      <NuxtLink to="/track" class="mobile-link" @click="emit('close')">{{ currentLang === 'tk' ? 'Sargyt Yzarla'  : 'Отследить заказ'     }}</NuxtLink>
-      <NuxtLink to="/about" class="mobile-link" @click="emit('close')">{{ currentLang === 'tk' ? 'Biz Hakda'      : 'О нас'               }}</NuxtLink>
-
-      <!-- Auth -->
-      <div class="mobile-auth">
-        <NuxtLink to="/auth/login"    class="btn-signin" @click="emit('close')">{{ currentLang === 'tk' ? 'Giriş'    : 'Войти'       }}</NuxtLink>
-        <NuxtLink to="/auth/register" class="btn-signup" @click="emit('close')">{{ currentLang === 'tk' ? 'Hasap Aç' : 'Регистрация' }}</NuxtLink>
+    <!-- User banner -->
+    <div v-if="signinStore.isLoggedIn" class="user-banner">
+      <div class="user-avatar">{{ initials }}</div>
+      <div class="user-info">
+        <div class="user-name">{{ signinStore.user?.name }}</div>
+        <div class="user-email">{{ signinStore.user?.email }}</div>
       </div>
     </div>
-  </Transition>
+
+    <!-- Nav links -->
+    <div class="nav-section">
+      <NuxtLink to="/"         class="nav-link" @click="emit('close')"><span class="link-icon">🏠</span><span>{{ currentLang === 'tk' ? 'Baş Sahypa' : 'Главная' }}</span></NuxtLink>
+      <NuxtLink to="/products" class="nav-link" @click="emit('close')"><span class="link-icon">🛍️</span><span>{{ currentLang === 'tk' ? 'Harytlar' : 'Товары' }}</span></NuxtLink>
+      <NuxtLink to="/request"  class="nav-link" @click="emit('close')"><span class="link-icon">📝</span><span>{{ currentLang === 'tk' ? 'Haryt Talaby' : 'Запрос товара' }}</span></NuxtLink>
+      <NuxtLink to="/orders"   class="nav-link" @click="emit('close')"><span class="link-icon">📦</span><span>{{ currentLang === 'tk' ? 'Sargytlarym' : 'Мои заказы' }}</span></NuxtLink>
+      <NuxtLink to="/cart"     class="nav-link cart-link" @click="emit('close')">
+        <span class="link-icon">🛒</span>
+        <span>{{ currentLang === 'tk' ? 'Sebet' : 'Корзина' }}</span>
+        <span v-if="cartStore.totalItems > 0" class="cart-count">{{ cartStore.totalItems }}</span>
+      </NuxtLink>
+    </div>
+
+    <!-- Auth section -->
+    <div class="auth-section">
+      <template v-if="!signinStore.isLoggedIn">
+        <NuxtLink to="/signin" class="btn-signin" @click="emit('close')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          {{ currentLang === 'tk' ? 'Giriş Et' : 'Войти' }}
+        </NuxtLink>
+        <NuxtLink to="/signup" class="btn-signup" @click="emit('close')">
+          {{ currentLang === 'tk' ? 'Hasap Aç' : 'Регистрация' }}
+        </NuxtLink>
+      </template>
+
+      <template v-else>
+        <NuxtLink to="/orders" class="btn-orders" @click="emit('close')">
+          📦 {{ currentLang === 'tk' ? 'Sargytlarym' : 'Мои заказы' }}
+        </NuxtLink>
+        <button class="btn-logout" @click="handleLogout">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          {{ currentLang === 'tk' ? 'Çykyş' : 'Выйти' }}
+        </button>
+      </template>
+    </div>
+
+  </div>
 </template>
 
 <style scoped>
 .mobile-menu {
   background: white;
-  padding: 16px 24px 24px;
   border-top: 1px solid #E5E7EB;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  max-height: calc(100dvh - 110px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
-.mobile-search {
+/* Search */
+.search-wrap {
   display: flex;
   align-items: center;
   gap: 10px;
   background: #F9FAFB;
-  border: 1.5px solid #E5E7EB;
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin-bottom: 12px;
-  color: #6B7280;
+  border-bottom: 1px solid #E5E7EB;
+  padding: 10px 16px;
 }
-
-.mobile-search-input {
+.search-icon { color: #9CA3AF; flex-shrink: 0; }
+.search-input {
+  flex: 1;
   border: none;
   background: transparent;
   outline: none;
-  flex: 1;
   font-size: 14px;
   font-family: 'Plus Jakarta Sans', sans-serif;
   color: #0F1117;
+  padding: 4px 0;
 }
+.search-input::placeholder { color: #9CA3AF; }
+.search-go {
+  width: 30px; height: 30px;
+  border-radius: 8px; border: none;
+  background: #E8A020; color: white;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0;
+  transition: background 0.2s;
+}
+.search-go:hover { background: #FF8C00; }
 
-.mobile-link {
-  padding: 12px 4px;
-  color: #6B7280;
+/* User banner */
+.user-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #0F1117, #1a1d2e);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.user-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(135deg, #E8A020, #FF8C00);
+  color: white; font-size: 13px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.user-name  { font-size: 14px; font-weight: 700; color: white; }
+.user-email { font-size: 11px; color: rgba(255,255,255,.4); margin-top: 2px; }
+
+/* Nav links */
+.nav-section {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  gap: 2px;
+}
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px;
+  border-radius: 10px;
+  color: #374151;
   text-decoration: none;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
-  border-bottom: 1px solid #E5E7EB;
-  transition: color 0.2s;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: background 0.15s, color 0.15s;
 }
-.mobile-link:hover { color: #E8A020; }
+.nav-link:hover { background: #F9FAFB; color: #E8A020; }
+.nav-link.router-link-active { background: #FFF8EE; color: #E8A020; }
 
-.mobile-auth {
+.link-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
+.cart-link { position: relative; }
+.cart-count {
+  margin-left: auto;
+  background: #EF4444; color: white;
+  font-size: 11px; font-weight: 700;
+  padding: 2px 8px; border-radius: 50px;
+}
+
+/* Auth section */
+.auth-section {
   display: flex;
   gap: 10px;
-  margin-top: 12px;
+  padding: 12px 14px;
+  border-top: 1px solid #E5E7EB;
+  flex-wrap: wrap;
+  margin-top: auto;
 }
 
 .btn-signin {
-  flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 18px;
-  border-radius: 10px;
-  border: 2px solid #E5E7EB;
-  background: white;
-  color: #0F1117;
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: none;
+  flex: 1; min-width: 120px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  height: 44px; border-radius: 10px;
+  border: 2px solid #E5E7EB; background: white;
+  color: #0F1117; font-size: 13px; font-weight: 700;
+  text-decoration: none; font-family: 'Plus Jakarta Sans', sans-serif;
   transition: all 0.2s;
-  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 .btn-signin:hover { border-color: #E8A020; color: #E8A020; }
 
 .btn-signup {
-  flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 18px;
-  border-radius: 10px;
-  border: none;
+  flex: 1; min-width: 120px;
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 44px; border-radius: 10px; border: none;
   background: linear-gradient(135deg, #0F1117, #2A2D3A);
-  color: white;
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: none;
+  color: white; font-size: 13px; font-weight: 700;
+  text-decoration: none; font-family: 'Plus Jakarta Sans', sans-serif;
   transition: all 0.2s;
-  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 .btn-signup:hover { background: linear-gradient(135deg, #E8A020, #FF8C00); }
 
-.mobile-slide-enter-active, .mobile-slide-leave-active { transition: all 0.3s ease; }
-.mobile-slide-enter-from, .mobile-slide-leave-to { opacity: 0; transform: translateY(-10px); }
+.btn-orders {
+  flex: 1; min-width: 120px;
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 44px; border-radius: 10px; border: none;
+  background: linear-gradient(135deg, #E8A020, #FF8C00);
+  color: white; font-size: 13px; font-weight: 700;
+  text-decoration: none; font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: filter 0.2s;
+}
+.btn-orders:hover { filter: brightness(1.08); }
+
+.btn-logout {
+  flex: 1; min-width: 120px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  height: 44px; border-radius: 10px;
+  border: 2px solid #FECACA; background: #FEF2F2;
+  color: #DC2626; font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: all 0.2s;
+}
+.btn-logout:hover { background: #DC2626; color: white; border-color: #DC2626; }
 </style>

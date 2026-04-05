@@ -191,7 +191,9 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargytlarym — ChinaBox'
             <!-- Card header -->
             <div class="oc-head" @click="toggle(order.id)">
               <div class="oc-head-left">
-                <span class="oc-id">#{{ order.id.slice(-8).toUpperCase() }}</span>
+                <NuxtLink :to="`/track?id=${order.id}`" class="oc-id oc-id-link">
+                  {{ order.id }}
+                </NuxtLink>
                 <span class="oc-date">{{ fmtDate(order.createdAt) }}</span>
                 <span class="oc-items-count">
                   {{ order.lines?.length ?? 0 }}
@@ -277,6 +279,15 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargytlarym — ChinaBox'
 
                 <!-- Summary -->
                 <div class="oc-summary">
+                  <div class="oc-track-row">
+                    <div class="oc-full-id">
+                      <span class="oc-full-id-label">{{ lang === 'tk' ? 'Sargyt ID' : 'ID заказа' }}:</span>
+                      <span class="oc-full-id-val">{{ order.id }}</span>
+                    </div>
+                    <NuxtLink :to="`/track?id=${order.id}`" class="track-link">
+                      🚚 {{ lang === 'tk' ? 'Yzarla' : 'Отследить' }}
+                    </NuxtLink>
+                  </div>
                   <div class="oc-summary-row">
                     <span>{{ lang === 'tk' ? 'Önümler' : 'Товары' }}</span>
                     <span>${{ fmt(order.total) }}</span>
@@ -432,6 +443,8 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargytlarym — ChinaBox'
 .oc-head-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
 
 .oc-id   { font-family: monospace; font-size: 14px; font-weight: 700; color: var(--gold); }
+.oc-id-link { text-decoration: none; transition: opacity .15s; }
+.oc-id-link:hover { opacity: .7; text-decoration: underline; }
 .oc-date { font-size: 12px; color: var(--subtle); }
 .oc-items-count { font-size: 12px; color: var(--subtle); background: var(--surface); padding: 2px 8px; border-radius: var(--radius-pill); border: 1px solid var(--border-light); }
 
@@ -535,6 +548,33 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargytlarym — ChinaBox'
   border-top: 1px solid var(--border-light); padding-top: 8px; margin-top: 2px;
 }
 .oc-total-val { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--gold); }
+
+.oc-track-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+}
+.oc-full-id {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--white); border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-md); padding: 6px 12px;
+  min-width: 0; flex: 1;
+}
+.oc-full-id-label { font-size: 11px; font-weight: 700; color: var(--subtle); white-space: nowrap; }
+.oc-full-id-val {
+  font-family: monospace; font-size: 12px; color: var(--dark);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.track-link {
+  display: inline-flex; align-items: center; height: 36px; padding: 0 18px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color: white; font-size: 13px; font-weight: 700;
+  text-decoration: none; white-space: nowrap;
+  transition: all .15s; box-shadow: 0 4px 12px var(--gold-shadow);
+  flex-shrink: 0;
+}
+.track-link:hover { transform: translateY(-1px); box-shadow: 0 6px 16px var(--gold-shadow); }
+ 
 
 /* ══ Expand transition ══ */
 .expand-enter-active, .expand-leave-active { transition: opacity .2s, transform .2s; }

@@ -11,7 +11,6 @@ type Lang = 'tk' | 'ru'
 const signinStore = useSigninStore()
 const cartStore   = useCartStore()
 
-// ── Lang (persisted) ───────────────────────────────────────────
 const currentLang = ref<Lang>('tk')
 onMounted(() => {
   cartStore.restoreCart()
@@ -58,35 +57,104 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
           @logout="signinStore.logout()"
         />
 
-        <button class="mobile-toggle" @click="mobileOpen = !mobileOpen" aria-label="Menu">
-          <span :class="['burger', { open: mobileOpen }]" />
+        <button
+          class="mobile-toggle"
+          :class="{ open: mobileOpen }"
+          @click="mobileOpen = !mobileOpen"
+          aria-label="Menu"
+        >
+          <span class="bar" />
+          <span class="bar" />
+          <span class="bar" />
         </button>
       </div>
     </div>
 
     <HeaderNav :current-lang="currentLang" />
 
-    <HeaderMobileMenu
-      v-if="mobileOpen"
-      :current-lang="currentLang"
-      @close="mobileOpen = false"
-    />
+    <Transition name="mobile-slide">
+      <HeaderMobileMenu
+        v-if="mobileOpen"
+        :current-lang="currentLang"
+        @close="mobileOpen = false"
+      />
+    </Transition>
   </header>
 </template>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap');
+
 .site-header { position: sticky; top: 0; z-index: 200; }
 .site-header.scrolled .main-header { box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
 .main-header { background: white; border-bottom: 1px solid #E5E7EB; transition: box-shadow 0.3s; }
-.header-inner { max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; gap: 24px; }
-.mobile-toggle { display: none; background: none; border: none; cursor: pointer; padding: 8px; flex-shrink: 0; }
-.burger, .burger::before, .burger::after { display: block; width: 22px; height: 2px; background: #0F1117; border-radius: 2px; transition: all 0.3s; position: relative; }
-.burger::before, .burger::after { content: ''; position: absolute; }
-.burger::before { top: -6px; }
-.burger::after  { top:  6px; }
-.burger.open              { background: transparent; }
-.burger.open::before      { top: 0; transform: rotate(45deg); }
-.burger.open::after       { top: 0; transform: rotate(-45deg); }
-@media (max-width: 768px) { .mobile-toggle { display: flex; } .header-inner { padding: 12px 16px; gap: 12px; } }
+
+.header-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+}
+
+/* ── Hamburger / Close button ── */
+.mobile-toggle {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 10px;
+  border: 1.5px solid #E5E7EB;
+  background: white;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.2s, background 0.2s;
+}
+.mobile-toggle:hover { border-color: #E8A020; }
+
+/* When open → looks like a proper X close button */
+.mobile-toggle.open {
+  background: #F3F4F6;
+  border-color: #D1D5DB;
+}
+
+.bar {
+  display: block;
+  width: 16px;
+  height: 1.5px;
+  background: #0F1117;
+  border-radius: 2px;
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+.mobile-toggle.open .bar:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+.mobile-toggle.open .bar:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.mobile-toggle.open .bar:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+@media (max-width: 768px) {
+  .mobile-toggle { display: flex; }
+  .header-inner  { padding: 10px 16px; gap: 10px; }
+}
+
+/* X state */
+.mobile-toggle.open .bar:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+.mobile-toggle.open .bar:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.mobile-toggle.open .bar:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+/* Mobile menu slide transition */
+.mobile-slide-enter-active { transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.16,1,0.3,1); }
+.mobile-slide-leave-active  { transition: opacity 0.18s ease, transform 0.18s ease-in; }
+.mobile-slide-enter-from,
+.mobile-slide-leave-to      { opacity: 0; transform: translateY(-8px); }
+
+@media (max-width: 768px) {
+  .mobile-toggle { display: flex; }
+  .header-inner  { padding: 10px 16px; gap: 10px; }
+}
 </style>

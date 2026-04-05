@@ -17,3 +17,101 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ── Global responsive ───────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* Consistent padding on all pages */
+  .page-container,
+  .page-inner,
+  .page-body,
+  .section-inner,
+  .bc-inner,
+  .layout {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /* Sidebar hidden — full width content */
+  .sidebar {
+    display: none !important;
+  }
+
+  /* All major grids go single column */
+  .page-container,
+  .form-grid,
+  .product-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Stats 2 columns */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Product grid 2 columns */
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  /* Forms stack vertically */
+  .form-row {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  /* Cart stacks */
+  .cart-inner {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Hero buttons stack */
+  .hero-ctas {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  /* Delivery strip 2 cols */
+  .strip-inner {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Filter bars wrap */
+  .filter-bar,
+  .filter-tabs {
+    flex-wrap: wrap !important;
+  }
+
+  /* Sticky elements release */
+  .image-col,
+  .info-col {
+    position: static !important;
+  }
+
+  /* Tables scroll horizontally */
+  .card {
+    overflow-x: auto !important;
+  }
+}
+
+@media (max-width: 480px) {
+
+  /* Products 2 cols even on small phones */
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  /* Category grid 2 cols */
+  .cat-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Tighter padding */
+  .page-container,
+  .page-inner,
+  .page-body {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}

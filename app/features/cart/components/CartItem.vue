@@ -41,6 +41,9 @@ function inc() { store.updateQuantity(props.item.id, props.item.quantity + 1) }
           <div class="item-meta">
             <span v-if="item.color" class="meta-tag">{{ t.color }}: {{ item.color }}</span>
             <span v-if="item.size"  class="meta-tag">{{ t.size }}: {{ item.size }}</span>
+            <span v-for="opt in item.optionsDisplay" :key="opt.name" class="meta-tag">
+              {{ opt.name }}: <strong>{{ opt.value }}</strong>
+            </span>
           </div>
         </div>
 
