@@ -1,9 +1,12 @@
 <script setup lang="ts">
-type Lang = 'tk' | 'ru'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
 interface User { id: string; name: string; email: string; phone: string }
 
 const props = defineProps<{
-  currentLang: Lang
   isLoggedIn:  boolean
   cartCount:   number
   user?:       User | null
@@ -34,10 +37,10 @@ function handleLogout() { dropdownOpen.value = false; emit('logout') }
     <!-- Guest — hidden on mobile (shown in mobile menu) -->
     <template v-if="!isLoggedIn">
       <NuxtLink to="/signin" class="btn-signin desktop-only">
-        {{ currentLang === 'tk' ? 'Giriş' : 'Войти' }}
+        {{ $t('auth.signin.login') }}
       </NuxtLink>
       <NuxtLink to="/signup" class="btn-signup desktop-only">
-        {{ currentLang === 'tk' ? 'Hasap Aç' : 'Регистрация' }}
+        {{ $t('auth.signup.register') }}
       </NuxtLink>
     </template>
 
@@ -64,21 +67,21 @@ function handleLogout() { dropdownOpen.value = false; emit('logout') }
             <div class="dd-divider" />
             <NuxtLink to="/orders" class="dd-item" @click="dropdownOpen = false">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/></svg>
-              {{ currentLang === 'tk' ? 'Sargytlarym' : 'Мои заказы' }}
+              {{ $t('auth.orders') }}
             </NuxtLink>
             <NuxtLink to="/wishlist" class="dd-item" @click="dropdownOpen = false">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-              {{ currentLang === 'tk' ? 'Halanlarym' : 'Избранное' }}
+              {{ $t('auth.wishlist') }}
             </NuxtLink>
             <NuxtLink to="/cart" class="dd-item" @click="dropdownOpen = false">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-              {{ currentLang === 'tk' ? 'Sebedim' : 'Корзина' }}
+              {{ $t('footer.cart') }}
               <span v-if="cartCount > 0" class="dd-badge">{{ cartCount }}</span>
             </NuxtLink>
             <div class="dd-divider" />
             <button class="dd-item logout" @click="handleLogout">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-              {{ currentLang === 'tk' ? 'Çykyş' : 'Выйти' }}
+              {{ $t('auth.logout') }}
             </button>
           </div>
         </Transition>
@@ -95,7 +98,7 @@ function handleLogout() { dropdownOpen.value = false; emit('logout') }
         </svg>
         <span v-if="cartCount > 0" class="cart-badge">{{ cartCount > 99 ? '99+' : cartCount }}</span>
       </div>
-      <span class="cart-label desktop-only">{{ currentLang === 'tk' ? 'Sebet' : 'Корзина' }}</span>
+      <span class="cart-label desktop-only">{{ $t('footer.cart') }}</span>
     </NuxtLink>
 
   </div>

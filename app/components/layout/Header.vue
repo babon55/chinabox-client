@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
 import HeaderTopBar     from './header/Headertopbar.vue'
 import HeaderLogo       from './header/HeaderLogo.vue'
 import HeaderSearch     from './header/HeaderSearch.vue'
@@ -6,20 +9,23 @@ import HeaderActions    from './header/HeaderActions.vue'
 import HeaderNav        from './header/HeaderNav.vue'
 import HeaderMobileMenu from './header/HeaderMobileMenu.vue'
 
-type Lang = 'tk' | 'ru'
-
 const signinStore = useSigninStore()
 const cartStore   = useCartStore()
 
-const currentLang = ref<Lang>('tk')
+// Use Vue I18n
+const { locale } = useI18n()
+
 onMounted(() => {
   cartStore.restoreCart()
   signinStore.restore()
   const saved = localStorage.getItem('silkshop_lang')
-  if (saved === 'tk' || saved === 'ru') currentLang.value = saved as Lang
+  if (saved === 'tk' || saved === 'ru') {
+    locale.value = saved as 'tk' | 'ru'
+  }
 })
-function onLangChange(l: Lang) {
-  currentLang.value = l
+
+function onLangChange(l: 'tk' | 'ru') {
+  locale.value = l
   localStorage.setItem('silkshop_lang', l)
 }
 
@@ -35,22 +41,18 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 <template>
   <header :class="['site-header', { scrolled }]">
     <HeaderTopBar
-      :current-lang="currentLang"
-      :is-admin="false"
       @update:current-lang="onLangChange"
     />
 
     <div class="main-header">
       <div class="header-inner">
-        <HeaderLogo :current-lang="currentLang" />
+        <HeaderLogo />
 
         <HeaderSearch
           v-model:search-query="searchQuery"
-          :current-lang="currentLang"
         />
 
         <HeaderActions
-          :current-lang="currentLang"
           :is-logged-in="signinStore.isLoggedIn"
           :cart-count="cartStore.totalItems"
           :user="signinStore.user"
@@ -70,12 +72,11 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
       </div>
     </div>
 
-    <HeaderNav :current-lang="currentLang" />
+    <HeaderNav />
 
     <Transition name="mobile-slide">
       <HeaderMobileMenu
         v-if="mobileOpen"
-        :current-lang="currentLang"
         @close="mobileOpen = false"
       />
     </Transition>

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import ProductOptionsSelector from './ProductOptionsSelector.vue'
 import type { ProductOption, SelectedOptions } from '../types/product'
 import type { Category } from '../types/product'
@@ -22,13 +24,14 @@ export interface QuickAddProduct {
 
 const props = defineProps<{
   product: QuickAddProduct | null
-  lang:    'tk' | 'ru'
 }>()
 
 const emit = defineEmits<{
   (e: 'close'): void
   (e: 'add', productId: string, options: SelectedOptions): void
 }>()
+
+const { locale, t } = useI18n()
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -76,15 +79,15 @@ function fmt(n: number) { return Number(n).toFixed(2) }
           <div class="modal-head">
             <div class="prod-info">
               <div class="prod-thumb">
-                <img v-if="product.imageUrl" :src="product.imageUrl" :alt="lang === 'tk' ? product.nameTk : product.nameRu" class="thumb-img" />
+                <img v-if="product.imageUrl" :src="product.imageUrl" :alt="locale === 'tk' ? product.nameTk : product.nameRu" class="thumb-img" />
                 <span v-else class="thumb-emoji">{{ product.image }}</span>
               </div>
               <div class="prod-text">
-                <div class="prod-name">{{ lang === 'tk' ? product.nameTk : product.nameRu }}</div>
+                <div class="prod-name">{{ locale === 'tk' ? product.nameTk : product.nameRu }}</div>
                 <div class="prod-price">${{ fmt(product.price) }}</div>
               </div>
             </div>
-            <button class="close-btn" :aria-label="lang === 'tk' ? 'Ýap' : 'Закрыть'" @click="emit('close')">
+            <button class="close-btn" :aria-label="$t('common.close')" @click="emit('close')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <line x1="18" y1="6"  x2="6"  y2="18" />
                 <line x1="6"  y1="6"  x2="18" y2="18" />
@@ -95,27 +98,26 @@ function fmt(n: number) { return Number(n).toFixed(2) }
           <!-- Options body -->
           <div class="modal-body">
             <p class="section-label">
-              {{ lang === 'tk' ? 'Saýlawyňyzy ediň' : 'Выберите параметры' }}
+              {{ $t('product.selectOptions') }}
             </p>
             <ProductOptionsSelector
               ref="selectorRef"
               v-model="selectedOptions"
               :options="product.options"
-              :lang="lang"
             />
           </div>
 
           <!-- Footer -->
           <div class="modal-foot">
             <button class="cancel-btn" @click="emit('close')">
-              {{ lang === 'tk' ? 'Ýatyr' : 'Отмена' }}
+              {{ $t('common.cancel') }}
             </button>
             <button
               class="add-btn"
               :disabled="product.stock === 0 || !canSubmit"
               @click="submit"
             >
-              🛒 {{ lang === 'tk' ? 'Sebede Goş' : 'В корзину' }}
+              🛒 {{ $t('product.addToCart') }}
             </button>
           </div>
 

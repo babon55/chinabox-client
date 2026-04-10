@@ -6,6 +6,13 @@ import {
   setupFeatureComponents,
   setupFeatureImports,
 } from "./config/hooks/index";
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+import tkMessages from './locales/tk.json';
+import ruMessages from './locales/ru.json';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
@@ -26,6 +33,24 @@ export default defineNuxtConfig({
       setupFeatureImports(nuxt);
     },
   ],
+
+  // Vue I18n configuration
+  vite: {
+    plugins: [
+      // @ts-ignore - Vue I18n plugin auto-registers $t globally
+      await import('@intlify/unplugin-vue-i18n/vite').then(mod => mod.default({
+        runtimeOnly: true,
+        runtimeConfig: {
+          fallbackLocale: 'tk',
+          locale: 'tk',
+          messages: {
+            tk: tkMessages,
+            ru: ruMessages
+          }
+        }
+      }))
+    ]
+  },
 
   css: ["~/assets/index.css"],
 
@@ -48,6 +73,10 @@ export default defineNuxtConfig({
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:3001/api/v1'
     }
+  },
+
+  typescript: {
+    types: ['~/types/vue-i18n.d.ts']
   },
 
   watch: [

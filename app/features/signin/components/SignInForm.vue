@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import type { Lang } from '../types'
+import { useI18n } from 'vue-i18n'
 import { useSignIn } from '../composables/useSignIn'
+import type { Lang } from '../types'
 
-const props = defineProps<{ currentLang: Lang }>()
-const emit  = defineEmits<{ (e: 'success'): void }>()
+// prop kept so parent template doesn't need changes
+defineProps<{ currentLang?: string }>()
+const emit = defineEmits<{ (e: 'success'): void }>()
 
-const lang = computed(() => props.currentLang)
+const { locale } = useI18n()
+const lang = computed(() => locale.value as Lang)
 
 const { form, errors, isLoading, t, handleSubmit } = useSignIn(lang)
 
 const showPassword = ref(false)
 </script>
-
 <template>
   <div class="form-panel">
 

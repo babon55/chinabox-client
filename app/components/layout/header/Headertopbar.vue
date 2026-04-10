@@ -1,30 +1,32 @@
 <script setup lang="ts">
-type Lang = 'tk' | 'ru'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{ currentLang: Lang; isAdmin: boolean }>()
-const emit  = defineEmits<{ (e: 'update:currentLang', val: Lang): void }>()
+const { locale, t } = useI18n()
 
-const langs: Record<Lang, { flag: string; label: string }> = {
-  tk: { flag: '🇹🇲', label: 'TK' },
-  ru: { flag: '🇷🇺', label: 'RU' },
-}
+const langs = [
+  { code: 'tk' as const, flag: '🇹🇲', label: 'TK' },
+  { code: 'ru' as const, flag: '🇷🇺', label: 'RU' },
+]
+
+const currentLang = computed(() => locale.value)
 </script>
 
 <template>
   <div class="top-bar">
     <div class="top-bar-inner">
       <span class="top-msg">
-        ✈ {{ currentLang === 'tk' ? 'Türkmenistana eltip bermek' : 'Доставка по Туркменистану' }}
+        ✈ {{ $t('header.delivery') }}
       </span>
       <div class="top-right">
         <div class="lang-switcher">
           <button
-            v-for="(meta, code) in langs" :key="code"
-            :class="['lang-btn', { active: currentLang === code }]"
-            @click="emit('update:currentLang', code as Lang)"
-          >{{ meta.flag }} {{ meta.label }}</button>
+            v-for="lang in langs" :key="lang.code"
+            :class="['lang-btn', { active: currentLang === lang.code }]"
+            @click="locale = lang.code"
+          >{{ lang.flag }} {{ lang.label }}</button>
         </div>
-        <NuxtLink v-if="isAdmin" to="/admin" class="admin-link">Admin</NuxtLink>
+        <NuxtLink v-if="false" to="/admin" class="admin-link">{{ $t('admin.dashboard') }}</NuxtLink>
       </div>
     </div>
   </div>

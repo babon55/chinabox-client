@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
 export interface ProductOption {
   id:     string
   label:  string
@@ -8,13 +11,14 @@ export interface ProductOption {
 
 const props = defineProps<{
   options: ProductOption[]
-  lang:    'tk' | 'ru'
 }>()
 
 const emit = defineEmits<{
   (e: 'update:selected', v: Record<string, string>): void
   (e: 'valid', v: boolean): void
 }>()
+
+const { locale } = useI18n()
 
 const selected = ref<Record<string, string>>({})
 
@@ -49,7 +53,7 @@ const COLOR_NAMES: Record<string, Record<string, string>> = {
   '#92400E': { tk: 'Goňur',     ru: 'Коричневый'   },
 }
 function colorName(hex: string) {
-  return COLOR_NAMES[hex]?.[props.lang] ?? hex
+  return COLOR_NAMES[hex]?.[locale.value] ?? hex
 }
 
 const missingRequired = computed(() =>
@@ -72,7 +76,7 @@ const missingRequired = computed(() =>
           </template>
           <template v-else>{{ selected[opt.id] }}</template>
         </span>
-        <span v-else class="opt-required">{{ lang === 'tk' ? 'saýlaň' : 'выберите' }}</span>
+        <span v-else class="opt-required">{{ $t('productOptions.selectOption') }}</span>
       </div>
 
       <!-- SIZE / TEXT picker -->
@@ -101,7 +105,7 @@ const missingRequired = computed(() =>
 
     <!-- Validation hint -->
     <div v-if="missingRequired.length" class="variant-hint">
-      ⚠ {{ lang === 'tk' ? 'Saýlaň:' : 'Выберите:' }} {{ missingRequired.join(', ') }}
+      ⚠ {{ $t('productOptions.required') }} {{ missingRequired.join(', ') }}
     </div>
 
   </div>

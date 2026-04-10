@@ -1,38 +1,42 @@
 <script setup lang="ts">
-import type { Lang } from '../types'
+import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{ currentLang: Lang }>()
+// prop kept so the parent doesn't need changes, but lang comes from i18n
+defineProps<{ currentLang?: string }>()
+
+const { locale } = useI18n()
+const lang = computed(() => locale.value)
 
 const steps = computed(() => [
   {
     icon: '🔐',
-    title: props.currentLang === 'tk' ? 'Giriş ediň'         : 'Войдите',
-    desc:  props.currentLang === 'tk' ? 'Hasabyňyzy açyň'    : 'Откройте аккаунт',
+    title: lang.value === 'tk' ? 'Giriş ediň'      : 'Войдите',
+    desc:  lang.value === 'tk' ? 'Hasabyňyzy açyň' : 'Откройте аккаунт',
   },
   {
     icon: '🛍️',
-    title: props.currentLang === 'tk' ? 'Sargyt ediň'        : 'Заказывайте',
-    desc:  props.currentLang === 'tk' ? 'Önümleri saýlaň'    : 'Выбирайте товары',
+    title: lang.value === 'tk' ? 'Sargyt ediň'     : 'Заказывайте',
+    desc:  lang.value === 'tk' ? 'Önümleri saýlaň' : 'Выбирайте товары',
   },
   {
     icon: '🚀',
-    title: props.currentLang === 'tk' ? 'Eltip berler'       : 'Получайте',
-    desc:  props.currentLang === 'tk' ? 'Gapyňyza çenli'     : 'До вашей двери',
+    title: lang.value === 'tk' ? 'Eltip berler'    : 'Получайте',
+    desc:  lang.value === 'tk' ? 'Gapyňyza çenli'  : 'До вашей двери',
   },
 ])
 
 const testimonial = computed(() => ({
   tk: {
-    text:   '"SilkShop bilen haryt satyn almak örän aňsat boldy. Maslahat berýärin!"',
-    name:   'Merdan A.',
-    role:   'Müşderi',
+    text: '"SilkShop bilen haryt satyn almak örän aňsat boldy. Maslahat berýärin!"',
+    name: 'Merdan A.',
+    role: 'Müşderi',
   },
   ru: {
-    text:   '"С SilkShop покупать товары стало очень просто. Рекомендую!"',
-    name:   'Мердан А.',
-    role:   'Покупатель',
+    text: '"С SilkShop покупать товары стало очень просто. Рекомендую!"',
+    name: 'Мердан А.',
+    role: 'Покупатель',
   },
-}[props.currentLang]))
+}[lang.value as 'tk' | 'ru']))
 </script>
 
 <template>
@@ -57,10 +61,10 @@ const testimonial = computed(() => ({
     <!-- Hero -->
     <div class="side-hero">
       <h2 class="side-title">
-        {{ currentLang === 'tk' ? 'Hoş Geldiňiz\nYzyna!' : 'С Возвращением!' }}
+        {{ lang === 'tk' ? 'Hoş Geldiňiz\nYzyna!' : 'С Возвращением!' }}
       </h2>
       <p class="side-desc">
-        {{ currentLang === 'tk'
+        {{ lang === 'tk'
           ? 'Hasabyňyza giriş edip, şahsy sargyt taryhyňyzy we arzanladyşlaryňyzy görüň.'
           : 'Войдите в аккаунт, чтобы увидеть историю заказов и персональные скидки.' }}
       </p>

@@ -2,10 +2,25 @@
 import SignInSide from '../components/SignInSide.vue'
 import SignInForm from '../components/SignInForm.vue'
 import type { Lang } from '../types'
+import { useI18n } from 'vue-i18n'
 
-definePageMeta({ layout: 'auth' })
+definePageMeta({ layout: 'default' })
 
-const currentLang = ref<Lang>('tk')
+const { locale } = useI18n()
+
+// two-way mirror of locale — header changes are instantly reflected
+const currentLang = computed<Lang>({
+  get: () => locale.value as Lang,
+  set: (val) => {
+    locale.value = val
+    if (process.client) localStorage.setItem('silkshop_lang', val)
+  },
+})
+
+onMounted(() => {
+  const saved = localStorage.getItem('silkshop_lang') as Lang | null
+  if (saved === 'tk' || saved === 'ru') locale.value = saved
+})
 
 useHead({
   title: computed(() =>

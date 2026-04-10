@@ -1,19 +1,39 @@
 <script setup lang="ts">
-import type { CartItem, Lang } from '../types'
-import { useCart } from '../composables/useCart'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import type { CartItem } from '../types'
 import { useCartStore } from '../stores/cart.store'
 
 const props = defineProps<{
-  item:        CartItem
-  currentLang: Lang
+  item: CartItem
 }>()
 
 const store = useCartStore()
-const lang  = computed(() => props.currentLang)
-const { t, formatPrice, discountPercent } = useCart(lang)
+const emit = defineEmits<{
+  (e: 'removeRequested'): void
+}>()
 
-function dec() { store.updateQuantity(props.item.id, props.item.quantity - 1) }
-function inc() { store.updateQuantity(props.item.id, props.item.quantity + 1) }
+const { locale, t } = useI18n()
+
+// Computed for product name based on current language
+const productName = computed(() => {
+  return locale.value === 'tk' ? props.item.nameTk : props.item.nameRu
+})
+
+function formatPrice(price: number): string {
+  return `$${price.toFixed(2)}`
+}
+
+function dec() {
+  store.updateQuantity(props.item.id, props.item.quantity - 1, props.item.options)
+}
+function inc() {
+  store.updateQuantity(props.item.id, props.item.quantity + 1, props.item.options)
+}
+
+function requestRemove() {
+  emit('removeRequested')
+}
 </script>
 
 <template>
@@ -23,7 +43,7 @@ function inc() { store.updateQuantity(props.item.id, props.item.quantity + 1) }
     <div class="item-img">
       <span class="item-emoji">{{ item.image }}</span>
       <span v-if="!item.inStock" class="stock-overlay">
-        {{ t.outOfStock }}
+        {{ $t('cartItem.outOfStock') }}
       </span>
     </div>
 
@@ -31,16 +51,16 @@ function inc() { store.updateQuantity(props.item.id, props.item.quantity + 1) }
     <div class="item-info">
       <div class="item-top">
         <div>
-          <h3 class="item-name">{{ item.name[currentLang] }}</h3>
+          <h3 class="item-name">{{ productName }}</h3>
           <p class="item-seller">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
             </svg>
-            {{ t.seller }}: {{ item.seller }}
+            {{ $t('cartItem.seller') }}: {{ item.seller }}
           </p>
           <div class="item-meta">
-            <span v-if="item.color" class="meta-tag">{{ t.color }}: {{ item.color }}</span>
-            <span v-if="item.size"  class="meta-tag">{{ t.size }}: {{ item.size }}</span>
+            <span v-if="item.color" class="meta-tag">{{ $t('cartItem.color') }}: {{ item.color }}</span>
+            <span v-if="item.size"  class="meta-tag">{{ $t('cartItem.size') }}: {{ item.size }}</span>
             <span v-for="opt in item.optionsDisplay" :key="opt.name" class="meta-tag">
               {{ opt.name }}: <strong>{{ opt.value }}</strong>
             </span>
@@ -50,7 +70,7 @@ function inc() { store.updateQuantity(props.item.id, props.item.quantity + 1) }
         <!-- Stock badge -->
         <span :class="['stock-badge', item.inStock ? 'in' : 'out']">
           <span class="stock-dot" />
-          {{ item.inStock ? t.inStock : t.outOfStock }}
+          {{ item.inStock ? $t('cartItem.inStock') : $t('cartItem.outOfStock') }}
         </span>
       </div>
 
@@ -59,12 +79,9 @@ function inc() { store.updateQuantity(props.item.id, props.item.quantity + 1) }
         <div class="price-wrap">
           <span class="price-current">{{ formatPrice(item.price) }}</span>
           <span v-if="item.oldPrice" class="price-old">{{ formatPrice(item.oldPrice) }}</span>
-          <span v-if="item.oldPrice" class="price-badge">
-            -{{ discountPercent(item.price, item.oldPrice) }}%
-          </span>
         </div>
 
-        <!-- Quantity controls + actions -->
+        <!-- Quantity controls + remove -->
         <div class="item-controls">
           <div class="qty-wrap">
             <button class="qty-btn" @click="dec" :disabled="item.quantity <= 1">
@@ -76,18 +93,11 @@ function inc() { store.updateQuantity(props.item.id, props.item.quantity + 1) }
             </button>
           </div>
 
-          <button class="action-btn remove" @click="store.removeItem(item.id)">
+          <button class="action-btn remove" @click="requestRemove">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
             </svg>
-            {{ t.remove }}
-          </button>
-
-          <button class="action-btn save">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-            </svg>
-            {{ t.saveForLater }}
+            {{ $t('cartItem.remove') }}
           </button>
         </div>
       </div>

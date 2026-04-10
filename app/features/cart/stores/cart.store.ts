@@ -1,27 +1,26 @@
 import { defineStore } from 'pinia'
-import type { CartItem, CartSummary } from '../types'
+import { ref, computed } from 'vue'
+import type { CartItem } from '../types'
 import { useRuntimeConfig } from '#app'
 
-// ── SelectedOptions type ──────────────────────────────────────────────────────
-export type SelectedOptions = Record<string, string>  // optionId → chosen value
+export type SelectedOptions = Record<string, string>
 
-// ── Helper: refresh customer token silently ───────────────────────────────────
+const SIMPLE_RATE = 7
+const FAST_RATE   = 11
+
 async function refreshCustomerToken(apiBase?: string): Promise<string | null> {
   const refreshToken = localStorage.getItem('customer_refresh_token')
   if (!refreshToken) return null
-
   const base = apiBase || useRuntimeConfig().public.apiBase
-
   try {
     const data = await $fetch<{ accessToken: string; refreshToken: string }>(
       `${base}/customer/refresh`,
       { method: 'POST', body: { refreshToken } }
     )
-    localStorage.setItem('customer_access_token',  data.accessToken)
+    localStorage.setItem('customer_access_token', data.accessToken)
     localStorage.setItem('customer_refresh_token', data.refreshToken)
     return data.accessToken
   } catch {
-    // Refresh token also expired — clear everything
     localStorage.removeItem('customer_access_token')
     localStorage.removeItem('customer_refresh_token')
     localStorage.removeItem('customer_user')
@@ -29,27 +28,34 @@ async function refreshCustomerToken(apiBase?: string): Promise<string | null> {
   }
 }
 
-// ── Options key: same product + different options = different cart line ───────
 function optionsKey(opts?: SelectedOptions): string {
   if (!opts || !Object.keys(opts).length) return ''
   return Object.keys(opts).sort().map(k => `${k}:${opts[k]}`).join('|')
 }
 
 export const useCartStore = defineStore('cart', () => {
-
-  const items           = ref<CartItem[]>([])
-  const promoCode       = ref('')
-  const promoApplied    = ref(false)
-  const promoDiscount   = ref(0)
-  const checkoutLoading = ref(false)
-  const checkoutError   = ref<string | null>(null)
-  const lastOrderId     = ref<string | null>(null)
+  const items             = ref<CartItem[]>([])
+  const checkoutLoading   = ref(false)
+  const checkoutError     = ref<string | null>(null)
+  const lastOrderId       = ref<string | null>(null)
+  const removeConfirmItem = ref<CartItem | null>(null)
+  const deliveryType      = ref<'simple' | 'fast'>('simple')
+  const homeDelivery      = ref(false)
 
   function restoreCart() {
     if (!import.meta.client) return
     try {
       const raw = localStorage.getItem('silkshop_cart')
-      if (raw) items.value = JSON.parse(raw)
+      if (raw) items.value = JSON.parse(raw).map((item: CartItem) => ({
+        ...item,
+        price: Number(item.price),
+      }))
+      const savedDelivery = localStorage.getItem('silkshop_delivery')
+      if (savedDelivery) {
+        const d = JSON.parse(savedDelivery)
+        deliveryType.value = d.type ?? 'simple'
+        homeDelivery.value = d.home ?? false
+      }
     } catch {}
   }
 
@@ -57,33 +63,52 @@ export const useCartStore = defineStore('cart', () => {
     if (import.meta.client) localStorage.setItem('silkshop_cart', JSON.stringify(items.value))
   }
 
+  function _saveDelivery() {
+    if (import.meta.client)
+      localStorage.setItem('silkshop_delivery', JSON.stringify({
+        type: deliveryType.value,
+        home: homeDelivery.value,
+      }))
+  }
+
+  function setDeliveryType(t: 'simple' | 'fast') {
+    deliveryType.value = t
+    _saveDelivery()
+  }
+
+  function setHomeDelivery(v: boolean) {
+    homeDelivery.value = v
+    _saveDelivery()
+  }
+
   const totalItems = computed(() => items.value.reduce((sum, i) => sum + i.quantity, 0))
+  const subtotal   = computed(() => items.value.reduce((sum, i) => sum + i.price * i.quantity, 0))
 
-  const summary = computed<CartSummary>(() => {
-    const subtotal = items.value.reduce((sum, i) => sum + i.price * i.quantity, 0)
-    const discount = promoApplied.value ? subtotal * promoDiscount.value : 0
-    const shipping = subtotal > 50 ? 0 : 4.99
-    const total    = subtotal - discount + shipping
-    return { subtotal, discount, shipping, total }
-  })
+  const deliveryCost = computed(() =>
+    subtotal.value > 0
+      ? (deliveryType.value === 'fast' ? FAST_RATE : SIMPLE_RATE) + (homeDelivery.value ? 1 : 0)
+      : 0
+  )
 
-  // ── addItem: same product + same options → increment qty
-  //            same product + different options → separate line ────────────────
+  const total = computed(() => subtotal.value + deliveryCost.value)
+
   function addItem(item: CartItem & { options?: SelectedOptions }) {
-    console.log('Cart addItem:', item.id, 'options:', item.options)
-    const key      = optionsKey(item.options)
+    const normalizedItem: CartItem = {
+      ...item,
+      price: Number(item.price),
+    }
+    const key = optionsKey(item.options)
     const existing = items.value.find(
       i => i.id === item.id && optionsKey((i as any).options) === key
     )
     if (existing) {
       existing.quantity = Math.min(existing.quantity + item.quantity, 99)
     } else {
-      items.value.push({ ...item })
+      items.value.push({ ...normalizedItem, options: item.options })
     }
     _save()
   }
 
-  // ── updateQuantity: supports optional options key ─────────────────────────
   function updateQuantity(id: string, qty: number, options?: SelectedOptions) {
     if (qty < 1) return
     const key  = optionsKey(options)
@@ -93,7 +118,17 @@ export const useCartStore = defineStore('cart', () => {
     if (item) { item.quantity = qty; _save() }
   }
 
-  // ── removeItem: supports optional options key ─────────────────────────────
+  function requestRemove(item: CartItem) { removeConfirmItem.value = item }
+
+  function confirmRemove() {
+    if (removeConfirmItem.value) {
+      removeItem(removeConfirmItem.value.id, removeConfirmItem.value.options)
+      removeConfirmItem.value = null
+    }
+  }
+
+  function cancelRemove() { removeConfirmItem.value = null }
+
   function removeItem(id: string, options?: SelectedOptions) {
     const key   = optionsKey(options)
     items.value = items.value.filter(
@@ -103,81 +138,53 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   function clearCart() {
-    items.value = []; promoCode.value = ''; promoApplied.value = false; _save()
+    items.value = []
+    _save()
   }
 
-  function applyPromo(code: string): boolean {
-    const codes: Record<string, number> = { SILK10: 0.10, SILK20: 0.20, WELCOME: 0.15 }
-    const discount = codes[code.toUpperCase()]
-    if (discount) { promoDiscount.value = discount; promoApplied.value = true; return true }
-    return false
-  }
-
-  // ── Checkout with auto-refresh on 401 ────────────────────────────────────
-  async function checkout(note?: string): Promise<boolean> {
+  async function checkout(): Promise<boolean> {
     if (!import.meta.client) return false
-
     const config = useRuntimeConfig()
-    const API = config.public.apiBase
-
-    let token = localStorage.getItem('customer_access_token')
+    const API    = config.public.apiBase
+    let token    = localStorage.getItem('customer_access_token')
     if (!token) { navigateTo('/signin'); return false }
 
-    // Guard: ensure all items have a valid product id
     const invalidItems = items.value.filter(i => !i.id || i.id.trim() === '')
     if (invalidItems.length) {
-      checkoutError.value = 'Some cart items are missing product IDs. Please remove and re-add them.'
+      checkoutError.value = 'Some cart items are missing product IDs.'
       return false
     }
 
     checkoutLoading.value = true
     checkoutError.value   = null
 
-    console.log('Checkout cart items:', items.value.map(i => ({ id: i.id, options: i.options })))
     const orderBody = {
+      deliveryType: deliveryType.value,
+      homeDelivery: homeDelivery.value,
       lines: items.value.map(i => {
-        const opts = (i as any).options
-        // Ensure options is a plain JSON-serializable object (not a Vue Proxy)
-        const plainOpts = opts && typeof opts === 'object' ? JSON.parse(JSON.stringify(opts)) : (opts ?? {})
-        return {
-          productId: i.id,
-          qty:       i.quantity,
-          unitPrice: i.price,
-          options:   plainOpts,
-        }
+        const opts      = (i as any).options
+        const plainOpts = opts && typeof opts === 'object'
+          ? JSON.parse(JSON.stringify(opts))
+          : (opts ?? {})
+        return { productId: i.id, qty: i.quantity, unitPrice: i.price, options: plainOpts }
       }),
-      note,
     }
-    console.log('Checkout orderBody:', orderBody)
 
     try {
       const order = await $fetch<{ id: string }>(`${API}/customer/orders`, {
-        method:  'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body:    orderBody,
+        method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: orderBody,
       })
       lastOrderId.value = order.id
       clearCart()
       return true
-
     } catch (e: any) {
       const status = e?.response?.status ?? e?.status
-
-      // ── Auto-refresh on 401 ────────────────────────────────────────────────
       if (status === 401) {
         const newToken = await refreshCustomerToken(API)
-
-        if (!newToken) {
-          navigateTo('/signin')
-          return false
-        }
-
-        // Retry checkout with fresh token
+        if (!newToken) { navigateTo('/signin'); return false }
         try {
           const order = await $fetch<{ id: string }>(`${API}/customer/orders`, {
-            method:  'POST',
-            headers: { Authorization: `Bearer ${newToken}` },
-            body:    orderBody,
+            method: 'POST', headers: { Authorization: `Bearer ${newToken}` }, body: orderBody,
           })
           lastOrderId.value = order.id
           clearCart()
@@ -187,19 +194,20 @@ export const useCartStore = defineStore('cart', () => {
           return false
         }
       }
-
       checkoutError.value = e?.data?.message ?? e?.message ?? 'Checkout failed'
       return false
-
     } finally {
       checkoutLoading.value = false
     }
   }
 
   return {
-    items, promoCode, promoApplied, promoDiscount,
-    checkoutLoading, checkoutError, lastOrderId,
-    totalItems, summary,
-    restoreCart, addItem, updateQuantity, removeItem, clearCart, applyPromo, checkout,
+    items, checkoutLoading, checkoutError, lastOrderId, removeConfirmItem,
+    deliveryType, homeDelivery, deliveryCost,
+    totalItems, subtotal, total,
+    restoreCart, addItem, updateQuantity, removeItem,
+    requestRemove, confirmRemove, cancelRemove,
+    clearCart, checkout,
+    setDeliveryType, setHomeDelivery,
   }
 })

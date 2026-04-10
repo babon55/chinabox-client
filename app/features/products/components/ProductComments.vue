@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
 const props = defineProps<{
   productId: string
-  lang:      'tk' | 'ru'
 }>()
+
+const { locale, t } = useI18n()
 
 const config = useRuntimeConfig()
 const API   = config.public.apiBase
@@ -63,11 +66,11 @@ const alreadyReviewed = computed(() =>
 
 async function submitComment() {
   if (!newRating.value) {
-    submitErr.value = props.lang === 'tk' ? 'Baha beriň' : 'Поставьте оценку'
+    submitErr.value = t('productComments.ratingRequired')
     return
   }
   if (!newText.value.trim()) {
-    submitErr.value = props.lang === 'tk' ? 'Teswir ýazyň' : 'Напишите отзыв'
+    submitErr.value = t('productComments.reviewRequired')
     return
   }
   if (!token.value) return
@@ -88,7 +91,7 @@ async function submitComment() {
     setTimeout(() => { submitted.value = false }, 3000)
   } catch (e: unknown) {
     const msg = (e as { data?: { message?: string } })?.data?.message
-    submitErr.value = msg ?? (props.lang === 'tk' ? 'Ýalňyşlyk ýüze çykdy' : 'Произошла ошибка')
+    submitErr.value = msg ?? t('productComments.error')
   } finally {
     submitting.value = false
   }
@@ -108,7 +111,7 @@ async function deleteComment(id: string) {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function fmtDate(d: string) {
   return new Date(d).toLocaleDateString(
-    props.lang === 'tk' ? 'tk-TM' : 'ru-RU',
+    locale.value === 'tk' ? 'tk-TM' : 'ru-RU',
     { day: '2-digit', month: 'short', year: 'numeric' }
   )
 }
@@ -131,6 +134,18 @@ function avatarColor(name: string): string {
 function starsForRating(star: number): number {
   return data.value.comments.filter(c => c.rating === star).length
 }
+
+const ratingLabels = computed(() =>
+  locale.value === 'tk'
+    ? ['', 'Erbet', 'Ortaça', 'Kadaly', 'Gowy', 'Ajaýyp']
+    : ['', 'Плохо', 'Ниже среднего', 'Нормально', 'Хорошо', 'Отлично']
+)
+
+const reviewPlaceholder = computed(() =>
+  locale.value === 'tk'
+    ? 'Bu haryt hakynda pikiriňizi ýazyň...'
+    : 'Напишите ваше мнение об этом товаре...'
+)
 </script>
 
 <template>
@@ -140,7 +155,7 @@ function starsForRating(star: number): number {
     <div class="section-header">
       <div class="header-left">
         <h2 class="section-title">
-          {{ lang === 'tk' ? 'Müşderi Teswirleri' : 'Отзывы покупателей' }}
+          {{ $t('productComments.customerReviews') }}
         </h2>
         <span v-if="data.total > 0" class="comment-count">{{ data.total }}</span>
       </div>
@@ -156,7 +171,7 @@ function starsForRating(star: number): number {
           >★</span>
         </div>
         <span class="avg-label">
-          {{ lang === 'tk' ? `${data.total} teswir` : `${data.total} отзыва` }}
+          {{ $t('productComments.count', { total: data.total }) }}
         </span>
       </div>
     </div>
@@ -186,31 +201,29 @@ function starsForRating(star: number): number {
         <span class="prompt-icon">💬</span>
         <div>
           <p class="prompt-title">
-            {{ lang === 'tk' ? 'Teswir ýazmak üçin giriş ediň' : 'Войдите чтобы оставить отзыв' }}
+            {{ $t('productComments.loginToComment') }}
           </p>
           <p class="prompt-sub">
-            {{ lang === 'tk' ? 'Pikiriňizi beýlekilere paýlaşyň' : 'Поделитесь мнением с другими' }}
+            {{ $t('productComments.shareOpinion') }}
           </p>
         </div>
         <NuxtLink to="/signin" class="login-btn">
-          {{ lang === 'tk' ? 'Giriş Et' : 'Войти' }}
+          {{ $t('productComments.login') }}
         </NuxtLink>
       </div>
 
       <!-- Already reviewed -->
       <div v-else-if="alreadyReviewed" class="already-reviewed">
-        ✓ {{ lang === 'tk'
-          ? 'Siz bu haryt üçin eýýäm teswir ýazdyňyz'
-          : 'Вы уже оставили отзыв на этот товар' }}
+        ✓ {{ $t('productComments.alreadyReviewed') }}
       </div>
 
       <!-- Form -->
       <div v-else class="review-form">
-        <h3 class="form-title">{{ lang === 'tk' ? 'Teswiriňizi ýazyň' : 'Написать отзыв' }}</h3>
+        <h3 class="form-title">{{ $t('productComments.writeReview') }}</h3>
 
         <!-- Star picker -->
         <div class="star-picker">
-          <span class="star-label">{{ lang === 'tk' ? 'Bahanyňyz:' : 'Ваша оценка:' }}</span>
+          <span class="star-label">{{ $t('productComments.yourRating') }}</span>
           <div class="stars-input">
             <button
               v-for="i in 5"
@@ -223,9 +236,7 @@ function starsForRating(star: number): number {
           </div>
           <span v-if="newRating" class="rating-text">
             {{ ['','😞','😕','😐','😊','🤩'][newRating] }}
-            {{ lang === 'tk'
-              ? ['','Erbet','Ortaça','Kadaly','Gowy','Ajaýyp'][newRating]
-              : ['','Плохо','Ниже среднего','Нормально','Хорошо','Отлично'][newRating] }}
+            {{ ratingLabels[newRating] }}
           </span>
         </div>
 
@@ -233,9 +244,7 @@ function starsForRating(star: number): number {
         <textarea
           v-model="newText"
           class="review-textarea"
-          :placeholder="lang === 'tk'
-            ? 'Bu haryt hakynda pikiriňizi ýazyň...'
-            : 'Напишите ваше мнение об этом товаре...'"
+          :placeholder="reviewPlaceholder"
           rows="4"
           maxlength="1000"
         />
@@ -260,8 +269,8 @@ function starsForRating(star: number): number {
                 stroke-width="2.5"
               ><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>
               {{ submitting
-                ? (lang === 'tk' ? 'Ugradylýar...' : 'Отправка...')
-                : (lang === 'tk' ? '✉ Teswir Ugrat' : '✉ Отправить отзыв') }}
+                ? $t('productComments.submitting')
+                : $t('productComments.submit') }}
             </button>
           </div>
         </div>
@@ -269,7 +278,7 @@ function starsForRating(star: number): number {
         <!-- Success -->
         <Transition name="fade">
           <div v-if="submitted" class="submit-success">
-            🎉 {{ lang === 'tk' ? 'Teswiriňiz üstünlikli goşuldy!' : 'Ваш отзыв успешно добавлен!' }}
+            🎉 {{ $t('productComments.success') }}
           </div>
         </Transition>
       </div>
@@ -283,7 +292,7 @@ function starsForRating(star: number): number {
     <!-- Empty -->
     <div v-else-if="!data.comments.length" class="empty-comments">
       <span>💬</span>
-      <p>{{ lang === 'tk' ? 'Heniz teswir ýok — ilkinji bolup ýazyň!' : 'Отзывов пока нет — будьте первым!' }}</p>
+      <p>{{ $t('productComments.none') }}</p>
     </div>
 
     <!-- Comments list -->
@@ -309,7 +318,7 @@ function starsForRating(star: number): number {
           <button
             v-if="customerId === comment.customer.id"
             class="delete-btn"
-            :title="lang === 'tk' ? 'Poz' : 'Удалить'"
+            :title="$t('productComments.delete')"
             @click="deleteComment(comment.id)"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

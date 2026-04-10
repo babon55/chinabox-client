@@ -1,7 +1,9 @@
 <script setup lang="ts">
-type Lang = 'tk' | 'ru'
+import { ref, watch, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter, useRoute } from '#app'
 
-defineProps<{ currentLang: Lang }>()
+const { locale, t } = useI18n()
 
 const searchQuery   = defineModel<string>('searchQuery', { default: '' })
 const searchFocused = ref(false)
@@ -82,13 +84,6 @@ function onBlur() {
 }
 
 function fmt(n: number) { return Number(n).toFixed(2) }
-
-// Current lang from localStorage
-const lang = ref<'tk' | 'ru'>('tk')
-onMounted(() => {
-  const saved = localStorage.getItem('silkshop_lang')
-  if (saved === 'tk' || saved === 'ru') lang.value = saved as Lang
-})
 </script>
 
 <template>
@@ -100,7 +95,7 @@ onMounted(() => {
       <input
         ref="inputRef"
         v-model="searchQuery"
-        :placeholder="currentLang === 'tk' ? 'Haryt gözle...' : 'Поиск товаров...'"
+        :placeholder="$t('header.searchPlaceholder')"
         class="search-input"
         autocomplete="off"
         @focus="onFocus"
@@ -114,7 +109,7 @@ onMounted(() => {
         </svg>
       </button>
       <button class="search-btn" @click="handleSearch">
-        {{ currentLang === 'tk' ? 'Gözle' : 'Найти' }}
+        {{ $t('header.searchButton') }}
       </button>
     </div>
 
@@ -127,7 +122,7 @@ onMounted(() => {
           <div class="dot-spin">
             <span /><span /><span />
           </div>
-          <span>{{ currentLang === 'tk' ? 'Gözlenýär...' : 'Поиск...' }}</span>
+          <span>{{ $t('header.searching') }}</span>
         </div>
 
         <template v-else>
@@ -136,7 +131,7 @@ onMounted(() => {
           <div v-if="results.length" class="drop-section">
             <div class="drop-label">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-              {{ currentLang === 'tk' ? 'Harytlar' : 'Товары' }}
+              {{ $t('header.products') }}
             </div>
             <div
               v-for="p in results" :key="p.id"
@@ -148,8 +143,8 @@ onMounted(() => {
                 <span v-else class="prod-emoji">{{ p.image }}</span>
               </div>
               <div class="prod-info">
-                <span class="prod-name">{{ lang === 'tk' ? p.nameTk : p.nameRu }}</span>
-                <span class="prod-cat">{{ lang === 'tk' ? p.category.nameTk : p.category.nameRu }}</span>
+                <span class="prod-name">{{ locale === 'tk' ? p.nameTk : p.nameRu }}</span>
+                <span class="prod-cat">{{ locale === 'tk' ? p.category.nameTk : p.category.nameRu }}</span>
               </div>
               <span class="prod-price">${{ fmt(p.price) }}</span>
             </div>
@@ -158,27 +153,27 @@ onMounted(() => {
           <!-- No results -->
           <div v-else-if="searchQuery.trim() && !searching" class="drop-empty">
             <span>🔍</span>
-            <span>{{ currentLang === 'tk' ? 'Haryt tapylmady' : 'Ничего не найдено' }}</span>
+            <span>{{ $t('common.noResults') }}</span>
           </div>
 
           <!-- Categories (always shown) -->
           <div v-if="categories.length" class="drop-section">
             <div class="drop-label">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
-              {{ currentLang === 'tk' ? 'Kategoriýalar' : 'Категории' }}
+              {{ $t('header.categories') }}
             </div>
             <div class="cats-row">
               <button
                 v-for="c in categories.slice(0, 5)" :key="c.id"
                 class="cat-chip"
                 @mousedown.prevent="goCategory(c.id)"
-              >{{ lang === 'tk' ? c.nameTk : c.nameRu }}</button>
+              >{{ locale === 'tk' ? c.nameTk : c.nameRu }}</button>
             </div>
           </div>
 
           <!-- View all -->
           <div v-if="results.length" class="drop-footer" @mousedown.prevent="handleSearch">
-            <span>{{ currentLang === 'tk' ? 'Ähli netijeler' : 'Все результаты' }}</span>
+            <span>{{ $t('common.viewAll') }}</span>
             <span class="drop-count">{{ results.length }}+</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </div>

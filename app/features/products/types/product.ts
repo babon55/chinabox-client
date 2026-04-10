@@ -25,6 +25,7 @@ export interface Product {
   nameRu:     string
   image:      string
   imageUrl?:  string | null
+  imageUrls:  string[] 
   price:      number
   weightG?:   number | null
   stock:      number
@@ -33,6 +34,7 @@ export interface Product {
   categoryId: string
   category:   Category
   options:    ProductOption[]
+  markup:     number   
 }
 
 export type SelectedOptions = Record<string, string>

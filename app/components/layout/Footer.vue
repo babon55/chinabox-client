@@ -1,12 +1,10 @@
 <script setup lang="ts">
-const year = computed(() => new Date().getFullYear())
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-// Read lang from localStorage — simple approach without store
-const lang = ref<'tk' | 'ru'>('tk')
-onMounted(() => {
-  const saved = localStorage.getItem('silkshop_lang')
-  if (saved === 'tk' || saved === 'ru') lang.value = saved
-})
+const { t } = useI18n()
+
+const year = computed(() => new Date().getFullYear())
 </script>
 
 <template>
@@ -21,34 +19,32 @@ onMounted(() => {
             <span class="logo-name">SilkShop</span>
           </div>
           <p class="brand-desc">
-            {{ lang === 'tk'
-              ? 'Dünýäniň iň gowy harytlaryny Türkmenistana getirýäris.'
-              : 'Доставляем лучшие товары мира в Туркменистан.' }}
+            {{ $t('footer.brandDesc') }}
           </p>
           <div class="delivery-badges">
-            <span class="dbadge">⚡ 7-15 {{ lang === 'tk' ? 'gün' : 'дней' }}</span>
-            <span class="dbadge">🚚 15-30 {{ lang === 'tk' ? 'gün' : 'дней' }}</span>
+            <span class="dbadge">{{ $t('footer.delivery1') }}</span>
+            <span class="dbadge">{{ $t('footer.delivery2') }}</span>
           </div>
         </div>
 
         <!-- Links -->
         <div class="footer-links">
-          <h4>{{ lang === 'tk' ? 'Sahypalar' : 'Страницы' }}</h4>
+          <h4>{{ $t('footer.pages') }}</h4>
           <ul>
-            <li><NuxtLink to="/">{{ lang === 'tk' ? 'Baş sahypa' : 'Главная' }}</NuxtLink></li>
-            <li><NuxtLink to="/products">{{ lang === 'tk' ? 'Harytlar' : 'Товары' }}</NuxtLink></li>
-            <li><NuxtLink to="/cart">{{ lang === 'tk' ? 'Sebet' : 'Корзина' }}</NuxtLink></li>
-            <li><NuxtLink to="/orders">{{ lang === 'tk' ? 'Sargytlarym' : 'Мои заказы' }}</NuxtLink></li>
+            <li><NuxtLink to="/">{{ $t('footer.home') }}</NuxtLink></li>
+            <li><NuxtLink to="/products">{{ $t('footer.products') }}</NuxtLink></li>
+            <li><NuxtLink to="/cart">{{ $t('footer.cart') }}</NuxtLink></li>
+            <li><NuxtLink to="/orders">{{ $t('footer.orders') }}</NuxtLink></li>
           </ul>
         </div>
 
         <!-- Contact -->
         <div class="footer-links">
-          <h4>{{ lang === 'tk' ? 'Habarlaşmak' : 'Контакты' }}</h4>
+          <h4>{{ $t('footer.contact') }}</h4>
           <ul>
             <li>📞 +993 65 000 000</li>
             <li>📧 info@silkshop.tm</li>
-            <li>📍 {{ lang === 'tk' ? 'Aşgabat, Türkmenistan' : 'Ашхабад, Туркменистан' }}</li>
+            <li>📍 {{ $t('footer.address') }}</li>
           </ul>
         </div>
 
@@ -57,8 +53,8 @@ onMounted(() => {
 
     <div class="footer-bottom">
       <div class="footer-inner">
-        <span>© {{ year }} SilkShop. {{ lang === 'tk' ? 'Ähli hukuklar goralandyr.' : 'Все права защищены.' }}</span>
-        <span class="made-by">Made with ❤️ in Turkmenistan</span>
+        <span>© {{ year }} SilkShop. {{ $t('footer.copyright') }}</span>
+        <span class="made-by">{{ $t('footer.madeWithLove') }}</span>
       </div>
     </div>
   </footer>

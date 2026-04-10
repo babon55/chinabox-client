@@ -1,24 +1,23 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
 definePageMeta({ layout: 'default' })
 
 const API         = 'http://localhost:3001/api/v1'
 const signinStore = useSigninStore()
-
-const lang = ref<'tk' | 'ru'>('tk')
+const { locale, t } = useI18n()
 
 onMounted(async () => {
-  await signinStore.restore()  // fully await so token is ready
-  const saved = localStorage.getItem('silkshop_lang')
-  if (saved === 'tk' || saved === 'ru') lang.value = saved as 'tk' | 'ru'
+  await signinStore.restore()
   if (signinStore.isLoggedIn) loadOrders()
 })
 
 // ── Orders ────────────────────────────────────────────────────
-const orders    = ref<any[]>([])
-const loading   = ref(false)
-const error     = ref<string | null>(null)
-const expanded  = ref<string | null>(null)
-const filterSt  = ref<string>('ALL')
+const orders   = ref<any[]>([])
+const loading  = ref(false)
+const error    = ref<string | null>(null)
+const expanded = ref<string | null>(null)
+const filterSt = ref<string>('ALL')
 
 async function loadOrders() {
   const token = signinStore.accessToken ?? localStorage.getItem('access_token')
@@ -31,13 +30,13 @@ async function loadOrders() {
     })
     orders.value = Array.isArray(data) ? data : (data.items ?? [])
   } catch {
-    error.value = lang.value === 'tk' ? 'Sargytlar ýüklenip bilinmedi' : 'Не удалось загрузить заказы'
+    error.value = t('common.error')
   } finally {
     loading.value = false
   }
 }
 
-// ── FIXED: only react to real login (false → true), not restore() ─────────────
+// ── Only react to real login (false → true), not restore() ───────────────────
 watch(() => signinStore.isLoggedIn, (val, oldVal) => {
   if (val && oldVal === false) loadOrders()
 })
@@ -51,14 +50,14 @@ const filtered = computed(() => {
 })
 
 // ── Helpers ───────────────────────────────────────────────────
-const STATUS_LABELS: Record<string, Record<string, string>> = {
-  ALL:        { tk: 'Hemmesi',     ru: 'Все'        },
-  PENDING:    { tk: 'Garaşylýar', ru: 'Ожидanie'   },
-  PROCESSING: { tk: 'Işlenilýär', ru: 'В работе'   },
-  SHIPPED:    { tk: 'Ugradyldy',  ru: 'Отправлен'  },
-  DELIVERED:  { tk: 'Gowşuryldy',ru: 'Доставлен'  },
-  CANCELLED:  { tk: 'Ýatyryldy', ru: 'Отменён'    },
-}
+const STATUS_LABELS = computed<Record<string, string>>(() => ({
+  ALL:        t('common.allCategories'),
+  PENDING:    t('orders.statusPending'),
+  PROCESSING: t('orders.statusProcessing'),
+  SHIPPED:    t('orders.statusShipped'),
+  DELIVERED:  t('orders.statusDelivered'),
+  CANCELLED:  t('orders.statusCancelled'),
+}))
 
 const STATUS_COLORS: Record<string, string> = {
   PENDING:    '#F59E0B',
@@ -73,7 +72,7 @@ const STATUS_STEPS = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED']
 function stepIndex(status: string) { return STATUS_STEPS.indexOf(status) }
 function fmt(n: number | string)   { return Number(n).toFixed(2) }
 function fmtDate(d: string) {
-  return new Date(d).toLocaleDateString(lang.value === 'tk' ? 'tk-TM' : 'ru-RU', {
+  return new Date(d).toLocaleDateString(locale.value === 'tk' ? 'tk-TM' : 'ru-RU', {
     day: '2-digit', month: 'short', year: 'numeric',
   })
 }
@@ -84,20 +83,19 @@ function toggle(id: string) {
 
 // ── Stats ─────────────────────────────────────────────────────
 const stats = computed(() => {
-  const l = lang.value
-  const total   = orders.value.length
-  const active  = orders.value.filter(o => ['PENDING','PROCESSING','SHIPPED'].includes(o.status)).length
-  const done    = orders.value.filter(o => o.status === 'DELIVERED').length
-  const spent   = orders.value.filter(o => o.status !== 'CANCELLED').reduce((s, o) => s + Number(o.total), 0)
+  const total  = orders.value.length
+  const active = orders.value.filter(o => ['PENDING','PROCESSING','SHIPPED'].includes(o.status)).length
+  const done   = orders.value.filter(o => o.status === 'DELIVERED').length
+  const spent  = orders.value.filter(o => o.status !== 'CANCELLED').reduce((s, o) => s + Number(o.total), 0)
   return [
-    { label: l === 'tk' ? 'Jemi Sargyt'      : 'Всего заказов',    value: total,            icon: '📦' },
-    { label: l === 'tk' ? 'Işjeň'            : 'Активные',         value: active,           icon: '⏳' },
-    { label: l === 'tk' ? 'Gowşuryldy'       : 'Доставлено',       value: done,             icon: '✅' },
-    { label: l === 'tk' ? 'Umumy Sarp Edildi': 'Всего потрачено',  value: `$${fmt(spent)}`, icon: '💰' },
+    { label: t('pages.orders.title'),  value: total,            icon: '📦' },
+    { label: t('orders.statusPending') + ' / ' + t('orders.statusProcessing'), value: active, icon: '⏳' },
+    { label: t('orders.statusDelivered'),                        value: done,             icon: '✅' },
+    { label: t('orders.total'),                                  value: `$${fmt(spent)}`, icon: '💰' },
   ]
 })
 
-useHead({ title: computed(() => lang.value === 'tk' ? 'Sargytlarym — ChinaBox' : 'Мои заказы — ChinaBox') })
+useHead({ title: computed(() => `${t('pages.orders.title')} — ChinaBox`) })
 </script>
 
 <template>
@@ -113,8 +111,8 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargytlarym — ChinaBox'
           </svg>
         </div>
         <div>
-          <h1 class="hero-title">{{ lang === 'tk' ? 'Sargytlarym' : 'Мои заказы' }}</h1>
-          <p class="hero-sub">{{ lang === 'tk' ? 'Ähli sargytlaryňyz bir ýerde' : 'Все ваши заказы в одном месте' }}</p>
+          <h1 class="hero-title">{{ t('pages.orders.title') }}</h1>
+          <p class="hero-sub">{{ locale === 'tk' ? 'Ähli sargytlaryňyz bir ýerde' : 'Все ваши заказы в одном месте' }}</p>
         </div>
       </div>
     </div>
@@ -124,11 +122,11 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargytlarym — ChinaBox'
       <!-- ══ NOT LOGGED IN ══ -->
       <div v-if="!signinStore.isLoggedIn" class="login-prompt">
         <div class="lp-icon">🔐</div>
-        <h2>{{ lang === 'tk' ? 'Sargytlaryňyzy görmek üçin giriş ediň' : 'Войдите чтобы увидеть свои заказы' }}</h2>
-        <p>{{ lang === 'tk' ? 'Hasabyňyz bilen ähli sargytlaryňyz bir ýerde görüner' : 'Все ваши заказы будут доступны после входа' }}</p>
+        <h2>{{ locale === 'tk' ? 'Sargytlaryňyzy görmek üçin giriş ediň' : 'Войдите чтобы увидеть свои заказы' }}</h2>
+        <p>{{ locale === 'tk' ? 'Hasabyňyz bilen ähli sargytlaryňyz bir ýerde görüner' : 'Все ваши заказы будут доступны после входа' }}</p>
         <div class="lp-actions">
-          <NuxtLink to="/signin" class="btn-gold">{{ lang === 'tk' ? 'Giriş Et' : 'Войти' }}</NuxtLink>
-          <NuxtLink to="/signup" class="btn-outline">{{ lang === 'tk' ? 'Hasap Aç' : 'Регистрация' }}</NuxtLink>
+          <NuxtLink to="/signin" class="btn-gold">{{ t('auth.signin.loginButton') }}</NuxtLink>
+          <NuxtLink to="/signup" class="btn-outline">{{ t('auth.signup.registerButton') }}</NuxtLink>
         </div>
       </div>
 
@@ -153,7 +151,7 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargytlarym — ChinaBox'
             :class="['ftab', { active: filterSt === s }]"
             @click="filterSt = s"
           >
-            {{ STATUS_LABELS[s]?.[lang] }}
+            {{ STATUS_LABELS[s] }}
             <span v-if="s !== 'ALL'" class="ftab-count">
               {{ orders.filter(o => o.status === s).length }}
             </span>
@@ -174,13 +172,10 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargytlarym — ChinaBox'
         <!-- ══ EMPTY ══ -->
         <div v-else-if="filtered.length === 0" class="empty-state">
           <div class="empty-icon">📭</div>
-          <h3>{{ lang === 'tk' ? 'Sargyt tapylmady' : 'Заказов не найдено' }}</h3>
-          <p>{{ filterSt === 'ALL'
-            ? (lang === 'tk' ? 'Entek hiç sargyt etmediňiz' : 'Вы ещё не делали заказов')
-            : (lang === 'tk' ? 'Bu ýagdaýda sargyt ýok' : 'Нет заказов с этим статусом')
-          }}</p>
+          <h3>{{ t('orders.noOrders') }}</h3>
+          <p>{{ filterSt === 'ALL' ? t('orders.emptyMessage') : locale === 'tk' ? 'Bu ýagdaýda sargyt ýok' : 'Нет заказов с этим статусом' }}</p>
           <NuxtLink v-if="filterSt === 'ALL'" to="/products" class="btn-gold">
-            {{ lang === 'tk' ? 'Harytlara Git' : 'Смотреть товары' }}
+            {{ t('common.continueShopping') }}
           </NuxtLink>
         </div>
 
@@ -197,7 +192,7 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargytlarym — ChinaBox'
                 <span class="oc-date">{{ fmtDate(order.createdAt) }}</span>
                 <span class="oc-items-count">
                   {{ order.lines?.length ?? 0 }}
-                  {{ lang === 'tk' ? 'haryt' : 'товар(а)' }}
+                  {{ t('cart.itemCount') }}
                 </span>
               </div>
               <div class="oc-head-right">
@@ -205,7 +200,7 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargytlarym — ChinaBox'
                   class="oc-badge"
                   :style="{ background: (STATUS_COLORS[order.status] ?? '#6B7280') + '18', color: STATUS_COLORS[order.status] ?? '#6B7280', border: `1.5px solid ${(STATUS_COLORS[order.status] ?? '#6B7280')}30` }"
                 >
-                  {{ STATUS_LABELS[order.status]?.[lang] ?? order.status }}
+                  {{ STATUS_LABELS[order.status] ?? order.status }}
                 </div>
                 <div class="oc-total">${{ fmt(order.total) }}</div>
                 <div :class="['oc-chevron', { open: expanded === order.id }]">
@@ -240,12 +235,12 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargytlarym — ChinaBox'
                   :class="{ active: step === order.status }"
                   :style="step === order.status ? { color: STATUS_COLORS[order.status] } : {}"
                 >
-                  {{ STATUS_LABELS[step]?.[lang] }}
+                  {{ STATUS_LABELS[step] }}
                 </span>
               </div>
             </div>
             <div v-else class="oc-cancelled">
-              ❌ {{ lang === 'tk' ? 'Bu sargyt ýatyryldy' : 'Этот заказ был отменён' }}
+              ❌ {{ locale === 'tk' ? 'Bu sargyt ýatyryldy' : 'Этот заказ был отменён' }}
             </div>
 
             <!-- Expanded detail -->
@@ -253,7 +248,7 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargytlarym — ChinaBox'
               <div v-if="expanded === order.id" class="oc-detail">
 
                 <!-- Items -->
-                <div class="oc-detail-title">{{ lang === 'tk' ? 'Sargyt düzümi' : 'Состав заказа' }}</div>
+                <div class="oc-detail-title">{{ t('pages.orders.orderDetails') }}</div>
                 <div class="oc-items">
                   <div v-for="line in order.lines" :key="line.id" class="oc-item">
                     <div class="oc-item-thumb">
@@ -261,8 +256,8 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargytlarym — ChinaBox'
                       <span v-else class="oc-item-emoji">{{ line.product?.image ?? '📦' }}</span>
                     </div>
                     <div class="oc-item-info">
-                      <div class="oc-item-name">{{ lang === 'tk' ? line.product?.nameTk : line.product?.nameRu }}</div>
-                      <div class="oc-item-cat">{{ lang === 'tk' ? line.product?.category?.nameTk : line.product?.category?.nameRu }}</div>
+                      <div class="oc-item-name">{{ locale === 'tk' ? line.product?.nameTk : line.product?.nameRu }}</div>
+                      <div class="oc-item-cat">{{ locale === 'tk' ? line.product?.category?.nameTk : line.product?.category?.nameRu }}</div>
                     </div>
                     <div class="oc-item-right">
                       <div class="oc-item-qty">× {{ line.qty }}</div>
@@ -281,19 +276,19 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargytlarym — ChinaBox'
                 <div class="oc-summary">
                   <div class="oc-track-row">
                     <div class="oc-full-id">
-                      <span class="oc-full-id-label">{{ lang === 'tk' ? 'Sargyt ID' : 'ID заказа' }}:</span>
+                      <span class="oc-full-id-label">{{ t('orders.orderNumber') }}:</span>
                       <span class="oc-full-id-val">{{ order.id }}</span>
                     </div>
                     <NuxtLink :to="`/track?id=${order.id}`" class="track-link">
-                      🚚 {{ lang === 'tk' ? 'Yzarla' : 'Отследить' }}
+                      🚚 {{ t('track.track') }}
                     </NuxtLink>
                   </div>
                   <div class="oc-summary-row">
-                    <span>{{ lang === 'tk' ? 'Önümler' : 'Товары' }}</span>
+                    <span>{{ t('cart.items') }}</span>
                     <span>${{ fmt(order.total) }}</span>
                   </div>
                   <div class="oc-summary-total">
-                    <span>{{ lang === 'tk' ? 'Jemi' : 'Итого' }}</span>
+                    <span>{{ t('orders.total') }}</span>
                     <span class="oc-total-val">${{ fmt(order.total) }}</span>
                   </div>
                 </div>
@@ -574,7 +569,6 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargytlarym — ChinaBox'
   flex-shrink: 0;
 }
 .track-link:hover { transform: translateY(-1px); box-shadow: 0 6px 16px var(--gold-shadow); }
- 
 
 /* ══ Expand transition ══ */
 .expand-enter-active, .expand-leave-active { transition: opacity .2s, transform .2s; }

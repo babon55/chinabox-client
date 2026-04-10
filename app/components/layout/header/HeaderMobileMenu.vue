@@ -1,7 +1,10 @@
 <script setup lang="ts">
-type Lang = 'tk' | 'ru'
+import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from '#app'
 
-defineProps<{ currentLang: Lang }>()
+const { t } = useI18n()
+
 const emit = defineEmits<{ (e: 'close'): void }>()
 
 const signinStore = useSigninStore()
@@ -38,7 +41,7 @@ const initials = computed(() => {
       <input
         v-model="searchQuery"
         class="search-input"
-        :placeholder="currentLang === 'tk' ? 'Haryt gözle...' : 'Поиск товаров...'"
+        :placeholder="$t('header.searchPlaceholder')"
         @keydown.enter="handleSearch"
       />
       <button v-if="searchQuery" class="search-go" @click="handleSearch">
@@ -59,13 +62,13 @@ const initials = computed(() => {
 
     <!-- Nav links -->
     <div class="nav-section">
-      <NuxtLink to="/"         class="nav-link" @click="emit('close')"><span class="link-icon">🏠</span><span>{{ currentLang === 'tk' ? 'Baş Sahypa' : 'Главная' }}</span></NuxtLink>
-      <NuxtLink to="/products" class="nav-link" @click="emit('close')"><span class="link-icon">🛍️</span><span>{{ currentLang === 'tk' ? 'Harytlar' : 'Товары' }}</span></NuxtLink>
-      <NuxtLink to="/request"  class="nav-link" @click="emit('close')"><span class="link-icon">📝</span><span>{{ currentLang === 'tk' ? 'Haryt Talaby' : 'Запрос товара' }}</span></NuxtLink>
-      <NuxtLink to="/orders"   class="nav-link" @click="emit('close')"><span class="link-icon">📦</span><span>{{ currentLang === 'tk' ? 'Sargytlarym' : 'Мои заказы' }}</span></NuxtLink>
+      <NuxtLink to="/"         class="nav-link" @click="emit('close')"><span class="link-icon">🏠</span><span>{{ $t('footer.home') }}</span></NuxtLink>
+      <NuxtLink to="/products" class="nav-link" @click="emit('close')"><span class="link-icon">🛍️</span><span>{{ $t('footer.products') }}</span></NuxtLink>
+      <NuxtLink to="/request"  class="nav-link" @click="emit('close')"><span class="link-icon">📝</span><span>{{ $t('request.title') }}</span></NuxtLink>
+      <NuxtLink to="/orders"   class="nav-link" @click="emit('close')"><span class="link-icon">📦</span><span>{{ $t('auth.orders') }}</span></NuxtLink>
       <NuxtLink to="/cart"     class="nav-link cart-link" @click="emit('close')">
         <span class="link-icon">🛒</span>
-        <span>{{ currentLang === 'tk' ? 'Sebet' : 'Корзина' }}</span>
+        <span>{{ $t('footer.cart') }}</span>
         <span v-if="cartStore.totalItems > 0" class="cart-count">{{ cartStore.totalItems }}</span>
       </NuxtLink>
     </div>
@@ -75,20 +78,20 @@ const initials = computed(() => {
       <template v-if="!signinStore.isLoggedIn">
         <NuxtLink to="/signin" class="btn-signin" @click="emit('close')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-          {{ currentLang === 'tk' ? 'Giriş Et' : 'Войти' }}
+          {{ $t('auth.signin.login') }}
         </NuxtLink>
         <NuxtLink to="/signup" class="btn-signup" @click="emit('close')">
-          {{ currentLang === 'tk' ? 'Hasap Aç' : 'Регистрация' }}
+          {{ $t('auth.signup.register') }}
         </NuxtLink>
       </template>
 
       <template v-else>
         <NuxtLink to="/orders" class="btn-orders" @click="emit('close')">
-          📦 {{ currentLang === 'tk' ? 'Sargytlarym' : 'Мои заказы' }}
+          📦 {{ $t('auth.orders') }}
         </NuxtLink>
         <button class="btn-logout" @click="handleLogout">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          {{ currentLang === 'tk' ? 'Çykyş' : 'Выйти' }}
+          {{ $t('auth.logout') }}
         </button>
       </template>
     </div>

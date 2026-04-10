@@ -1,66 +1,39 @@
-import type { Lang, CartTranslations } from '../types'
+import { useI18n } from 'vue-i18n'
+import type { CartTranslations } from '../types'
 
-const translations: Record<Lang, CartTranslations> = {
-  tk: {
-    title:             'Sebedim',
-    empty:             'Sebet boş',
-    emptyDesc:         'Heniz hiç zat goşmadyňyz. Harytlara göz aýlaň!',
-    shopNow:           'Harytlara Git',
-    item:              'haryt',
-    items:             'haryt',
-    remove:            'Aýyr',
-    saveForLater:      'Soňa sakla',
-    color:             'Reňk',
-    size:              'Ölçeg',
-    seller:            'Satyjy',
-    inStock:           'Stokda bar',
-    outOfStock:        'Stokda ýok',
-    orderSummary:      'Sargyt Jemi',
-    subtotal:          'Ara jemi',
-    discount:          'Arzanladyş',
-    shipping:          'Eltip beriş',
-    shippingFree:      'Mugt',
-    total:             'Jemi',
-    checkout:          'Tölemäge Git',
-    continueShopping:  'Söwda dowam et',
-    promoCode:         'Promo kod',
-    promoPlaceholder:  'Promo kody giriziň',
-    promoApply:        'Ulan',
-    clearCart:         'Sebedi arassala',
-    estimatedDelivery: 'Takmynan eltip beriş: 7–14 gün',
-  },
-  ru: {
-    title:             'Корзина',
-    empty:             'Корзина пуста',
-    emptyDesc:         'Вы ещё ничего не добавили. Посмотрите товары!',
-    shopNow:           'Перейти к товарам',
-    item:              'товар',
-    items:             'товара',
-    remove:            'Удалить',
-    saveForLater:      'Сохранить',
-    color:             'Цвет',
-    size:              'Размер',
-    seller:            'Продавец',
-    inStock:           'В наличии',
-    outOfStock:        'Нет в наличии',
-    orderSummary:      'Итого по заказу',
-    subtotal:          'Подытог',
-    discount:          'Скидка',
-    shipping:          'Доставка',
-    shippingFree:      'Бесплатно',
-    total:             'Итого',
-    checkout:          'Оформить заказ',
-    continueShopping:  'Продолжить покупки',
-    promoCode:         'Промокод',
-    promoPlaceholder:  'Введите промокод',
-    promoApply:        'Применить',
-    clearCart:         'Очистить корзину',
-    estimatedDelivery: 'Ориентировочная доставка: 7–14 дней',
-  },
-}
+// We'll use Vue I18n globally; this composable provides cart-specific helpers
+export function useCart() {
+  const { t } = useI18n()
 
-export function useCart(lang: Ref<Lang>) {
-  const t = computed<CartTranslations>(() => translations[lang.value])
+  // Type-safe wrapper for cart translations
+  const cartT = computed<CartTranslations>(() => ({
+    title:             t('cart.title'),
+    empty:             t('cart.empty'),
+    emptyDesc:         t('cart.emptyMessage'),
+    shopNow:           t('cart.startShopping'),
+    item:              t('cart.itemCount'),
+    items:             t('cart.itemCount'),
+    remove:            t('cartItem.remove'),
+    saveForLater:      t('cartItem.save'), // placeholder if needed
+    color:             t('cartItem.color'),
+    size:              t('cartItem.size'),
+    seller:            t('cartItem.seller'),
+    inStock:           t('cartItem.inStock'),
+    outOfStock:        t('cartItem.outOfStock'),
+    orderSummary:      t('cart.orderSummary'),
+    subtotal:          t('cart.subtotal'),
+    discount:          t('cart.discount'),
+    shipping:          t('cart.shipping'),
+    shippingFree:      t('common.free'), // placeholder
+    total:             t('cart.total'),
+    checkout:          t('cart.checkout'),
+    continueShopping:  t('cart.continueShopping'),
+    promoCode:         t('cart.promoCode'),
+    promoPlaceholder:  t('cart.promoPlaceholder'),
+    promoApply:        t('cart.promoApply'),
+    clearCart:         t('cart.clearCart'),
+    estimatedDelivery: t('cart.estimatedDelivery'),
+  }))
 
   function formatPrice(amount: number): string {
     return `$${amount.toFixed(2)}`
@@ -70,5 +43,5 @@ export function useCart(lang: Ref<Lang>) {
     return Math.round(((oldPrice - price) / oldPrice) * 100)
   }
 
-  return { t, formatPrice, discountPercent }
+  return { t: cartT, formatPrice, discountPercent }
 }

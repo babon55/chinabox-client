@@ -1,9 +1,7 @@
 <script setup lang="ts">
-type Lang = 'tk' | 'ru'
+import { useI18n } from 'vue-i18n'
 
-defineProps<{
-  currentLang: Lang
-}>()
+const { t } = useI18n()
 </script>
 
 <template>
@@ -14,7 +12,7 @@ defineProps<{
     <div class="logo-text">
       <span class="logo-main">ChinaBox</span>
       <span class="logo-sub">
-        {{ currentLang === 'tk' ? 'Hytaý Market' : 'Китайский Маркет' }}
+        {{ $t('header.logoTagline') }}
       </span>
     </div>
   </NuxtLink>

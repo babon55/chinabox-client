@@ -1,6 +1,7 @@
 <script setup lang="ts">
-type Lang = 'tk' | 'ru'
-defineProps<{ currentLang: Lang }>()
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -12,21 +13,21 @@ defineProps<{ currentLang: Lang }>()
           <line x1="3" y1="12" x2="21" y2="12"/>
           <line x1="3" y1="18" x2="21" y2="18"/>
         </svg>
-        {{ currentLang === 'tk' ? 'Kategoriýalar' : 'Категории' }}
+        {{ $t('header.categories') }}
       </button>
 
       <div class="nav-links">
         <NuxtLink to="/" class="nav-link" active-class="nav-link--active">
-          {{ currentLang === 'tk' ? 'Baş Sahypa' : 'Главная' }}
+          {{ $t('footer.home') }}
         </NuxtLink>
         <NuxtLink to="/products" class="nav-link" active-class="nav-link--active">
-          {{ currentLang === 'tk' ? 'Harytlar' : 'Товары' }}
+          {{ $t('footer.products') }}
         </NuxtLink>
         <NuxtLink to="/track" class="nav-link" active-class="nav-link--active">
-          {{ currentLang === 'tk' ? 'Sargyt Yzarla' : 'Отследить заказ' }}
+          {{ $t('track.title') }}
         </NuxtLink>
         <NuxtLink to="/request" class="nav-link" active-class="nav-link--active">
-          {{ currentLang === 'tk' ? 'Haryt Talaby' : 'Запрос товара' }}
+          {{ $t('request.title') }}
         </NuxtLink>
       </div>
     </div>

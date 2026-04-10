@@ -1,14 +1,10 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'default' })
+import { useI18n } from 'vue-i18n'
 
+const { locale, t } = useI18n()
 const config = useRuntimeConfig()
 const API   = config.public.apiBase
-
-const lang = ref<'tk' | 'ru'>('tk')
-onMounted(() => {
-  const saved = localStorage.getItem('silkshop_lang')
-  if (saved === 'tk' || saved === 'ru') lang.value = saved
-})
 
 const form = ref({
   nameTk:       '',
@@ -31,7 +27,7 @@ function onFileChange(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
   if (file.size > 5 * 1024 * 1024) {
-    errors.value.image = lang.value === 'tk' ? 'Faýl 5MB-dan uly bolmaly däldir' : 'Файл не должен превышать 5МБ'
+    errors.value.image = t('request.fileTooLarge')
     return
   }
   imageFile.value    = file
@@ -52,8 +48,8 @@ async function uploadImage(): Promise<string | null> {
     const fd = new FormData()
     fd.append('file', imageFile.value)
     const res = await $fetch<{ url: string }>(`${API}/upload/request`, {
-      method:  'POST',
-      body:    fd,
+      method: 'POST',
+      body:   fd,
     })
     return res.url
   } catch {
@@ -65,12 +61,12 @@ async function uploadImage(): Promise<string | null> {
 
 function validate(): boolean {
   const e: Record<string, string> = {}
-  const req = lang.value === 'tk' ? 'Hökman' : 'Обязательно'
+  const req = t('request.fillAllFields')
   if (!form.value.nameTk.trim())      e.nameTk      = req
   if (!form.value.nameRu.trim())      e.nameRu      = req
   if (!form.value.contactName.trim()) e.contactName = req
   if (!form.value.contactPhone.trim() && !form.value.contactEmail.trim()) {
-    e.contact = lang.value === 'tk' ? 'Telefon ýa-da email giriziň' : 'Укажите телефон или email'
+    e.contact = t('request.fillAllFields')
   }
   errors.value = e
   return Object.keys(e).length === 0
@@ -97,13 +93,22 @@ async function handleSubmit() {
     })
     submitted.value = true
   } catch (e: any) {
-    errors.value.general = e?.data?.message ?? (lang.value === 'tk' ? 'Ýalňyşlyk ýüze çykdy' : 'Произошла ошибка')
+    errors.value.general = e?.data?.message ?? t('request.error')
   } finally {
     submitting.value = false
   }
 }
 
-useHead({ title: computed(() => lang.value === 'tk' ? 'Haryt Talaby – SilkShop' : 'Запрос товара – SilkShop') })
+function resetForm() {
+  submitted.value       = false
+  form.value.nameTk     = ''
+  form.value.nameRu     = ''
+  form.value.description = ''
+  imagePreview.value    = null
+  imageFile.value       = null
+}
+
+useHead({ title: computed(() => `${t('request.title')} – SilkShop`) })
 </script>
 
 <template>
@@ -112,9 +117,9 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Haryt Talaby – SilkShop
     <!-- Breadcrumb -->
     <div class="bc-bar">
       <div class="bc-inner">
-        <NuxtLink to="/">{{ lang === 'tk' ? 'Baş sahypa' : 'Главная' }}</NuxtLink>
+        <NuxtLink to="/">{{ $t('footer.home') }}</NuxtLink>
         <span>›</span>
-        <span>{{ lang === 'tk' ? 'Haryt Talaby' : 'Запрос товара' }}</span>
+        <span>{{ $t('request.title') }}</span>
       </div>
     </div>
 
@@ -123,14 +128,12 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Haryt Talaby – SilkShop
       <!-- Success -->
       <div v-if="submitted" class="success-card">
         <div class="success-icon">🎉</div>
-        <h2>{{ lang === 'tk' ? 'Talap ugradyldy!' : 'Запрос отправлен!' }}</h2>
-        <p>{{ lang === 'tk'
-          ? 'Talap üstünlikli alyndy. Biz mümkin boldugyndan çalt sizi habarlaşarys!'
-          : 'Ваш запрос успешно получен. Мы свяжемся с вами как можно скорее!' }}</p>
+        <h2>{{ $t('request.success') }}</h2>
+        <p>{{ $t('request.successDetail') }}</p>
         <div class="success-actions">
-          <NuxtLink to="/products" class="btn-gold">{{ lang === 'tk' ? 'Harytlara Git' : 'К товарам' }}</NuxtLink>
-          <button class="btn-outline" @click="submitted = false; form.nameTk = ''; form.nameRu = ''; imagePreview = null">
-            {{ lang === 'tk' ? 'Täze Talap' : 'Новый запрос' }}
+          <NuxtLink to="/products" class="btn-gold">{{ $t('footer.products') }}</NuxtLink>
+          <button class="btn-outline" @click="resetForm">
+            {{ $t('request.newRequest') }}
           </button>
         </div>
       </div>
@@ -139,10 +142,8 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Haryt Talaby – SilkShop
         <div class="page-header">
           <div class="header-icon">🛍️</div>
           <div>
-            <h1>{{ lang === 'tk' ? 'Haryt Talaby' : 'Запрос товара' }}</h1>
-            <p>{{ lang === 'tk'
-              ? 'Tapyp bilmedik harydyňyzy biziň üçin goşmagy haýyş ediň'
-              : 'Попросите нас добавить товар, который вы не можете найти' }}</p>
+            <h1>{{ $t('request.title') }}</h1>
+            <p>{{ $t('request.subtitle') }}</p>
           </div>
         </div>
 
@@ -154,7 +155,7 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Haryt Talaby – SilkShop
             <!-- Image upload -->
             <div class="field">
               <label class="field-label">
-                📷 {{ lang === 'tk' ? 'Harydyň suraty (islege görä)' : 'Фото товара (необязательно)' }}
+                📷 {{ $t('request.photoOptional') }}
               </label>
               <div
                 class="upload-zone"
@@ -165,7 +166,7 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Haryt Talaby – SilkShop
                   <img :src="imagePreview" class="preview-img" />
                   <button class="remove-img" @click.stop="clearImage">×</button>
                   <div class="preview-overlay">
-                    <span>{{ lang === 'tk' ? 'Üýtget' : 'Изменить' }}</span>
+                    <span>{{ $t('common.edit') }}</span>
                   </div>
                 </template>
                 <template v-else>
@@ -176,7 +177,7 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Haryt Talaby – SilkShop
                     </svg>
                   </div>
                   <div>
-                    <div class="upload-text">{{ lang === 'tk' ? 'Surat ýükle' : 'Загрузить фото' }}</div>
+                    <div class="upload-text">{{ $t('request.uploadPhoto') }}</div>
                     <div class="upload-hint">JPG, PNG • Max 5MB</div>
                   </div>
                 </template>
@@ -188,22 +189,22 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Haryt Talaby – SilkShop
             <!-- Product names -->
             <div class="form-row">
               <div class="field">
-                <label class="field-label">{{ lang === 'tk' ? 'Haryt ady (Türkmençe)' : 'Название (туркменский)' }} *</label>
+                <label class="field-label">{{ $t('request.nameTk') }} *</label>
                 <input
                   v-model="form.nameTk"
                   class="field-input"
                   :class="{ error: errors.nameTk }"
-                  :placeholder="lang === 'tk' ? 'mysal: Simsiz gulaklyk' : 'пример: Беспроводные наушники'"
+                  :placeholder="$t('request.nameTkPlaceholder')"
                 />
                 <span v-if="errors.nameTk" class="err">{{ errors.nameTk }}</span>
               </div>
               <div class="field">
-                <label class="field-label">{{ lang === 'tk' ? 'Haryt ady (Rusça)' : 'Название (русский)' }} *</label>
+                <label class="field-label">{{ $t('request.nameRu') }} *</label>
                 <input
                   v-model="form.nameRu"
                   class="field-input"
                   :class="{ error: errors.nameRu }"
-                  :placeholder="lang === 'tk' ? 'mysal: Беспроводные наушники' : 'пример: Беспроводные наушники'"
+                  :placeholder="$t('request.nameRuPlaceholder')"
                 />
                 <span v-if="errors.nameRu" class="err">{{ errors.nameRu }}</span>
               </div>
@@ -211,12 +212,12 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Haryt Talaby – SilkShop
 
             <!-- Description -->
             <div class="field">
-              <label class="field-label">{{ lang === 'tk' ? 'Beýany (islege görä)' : 'Описание (необязательно)' }}</label>
+              <label class="field-label">{{ $t('request.descriptionOptional') }}</label>
               <textarea
                 v-model="form.description"
                 class="field-textarea"
                 rows="3"
-                :placeholder="lang === 'tk' ? 'Haryt hakynda goşmaça maglumat...' : 'Дополнительная информация о товаре...'"
+                :placeholder="$t('request.descriptionPlaceholder')"
               />
             </div>
 
@@ -224,19 +225,19 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Haryt Talaby – SilkShop
 
             <!-- Contact -->
             <div class="field">
-              <label class="field-label">{{ lang === 'tk' ? 'Adyňyz' : 'Ваше имя' }} *</label>
+              <label class="field-label">{{ $t('request.name') }} *</label>
               <input
                 v-model="form.contactName"
                 class="field-input"
                 :class="{ error: errors.contactName }"
-                :placeholder="lang === 'tk' ? 'Adyňyz we familiýaňyz' : 'Имя и фамилия'"
+                :placeholder="$t('request.namePlaceholder')"
               />
               <span v-if="errors.contactName" class="err">{{ errors.contactName }}</span>
             </div>
 
             <div class="form-row">
               <div class="field">
-                <label class="field-label">{{ lang === 'tk' ? 'Telefon' : 'Телефон' }}</label>
+                <label class="field-label">{{ $t('request.phone') }}</label>
                 <input
                   v-model="form.contactPhone"
                   class="field-input"
@@ -244,7 +245,7 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Haryt Talaby – SilkShop
                 />
               </div>
               <div class="field">
-                <label class="field-label">Email</label>
+                <label class="field-label">{{ $t('request.email') }}</label>
                 <input
                   v-model="form.contactEmail"
                   class="field-input"
@@ -255,17 +256,19 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Haryt Talaby – SilkShop
             </div>
             <span v-if="errors.contact" class="err">{{ errors.contact }}</span>
 
-            <!-- Error -->
+            <!-- General error -->
             <div v-if="errors.general" class="error-box">⚠ {{ errors.general }}</div>
 
             <!-- Submit -->
             <button class="submit-btn" :disabled="submitting || uploading" @click="handleSubmit">
-              <svg v-if="submitting || uploading" class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+              <svg v-if="submitting || uploading" class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+              </svg>
               {{ uploading
-                ? (lang === 'tk' ? 'Surat ýüklenýär...' : 'Загрузка фото...')
+                ? $t('request.uploadingPhoto')
                 : submitting
-                  ? (lang === 'tk' ? 'Ugradylýar...' : 'Отправка...')
-                  : (lang === 'tk' ? '📨 Talap Ugrat' : '📨 Отправить запрос') }}
+                  ? $t('request.submitting')
+                  : $t('request.submitButton') }}
             </button>
 
           </div>
@@ -273,31 +276,19 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Haryt Talaby – SilkShop
           <!-- Right: info card -->
           <div class="info-col">
             <div class="info-card">
-              <h3>{{ lang === 'tk' ? 'Bu nähili işleýär?' : 'Как это работает?' }}</h3>
+              <h3>{{ $t('request.howItWorks') }}</h3>
               <div class="steps">
-                <div class="step">
-                  <span class="step-num">1</span>
-                  <span>{{ lang === 'tk' ? 'Harydyň adyny we suratyny goşuň' : 'Добавьте название и фото товара' }}</span>
-                </div>
-                <div class="step">
-                  <span class="step-num">2</span>
-                  <span>{{ lang === 'tk' ? 'Habarlaşmak üçin maglumat giriziň' : 'Укажите контактные данные' }}</span>
-                </div>
-                <div class="step">
-                  <span class="step-num">3</span>
-                  <span>{{ lang === 'tk' ? 'Biz siziň talabyňyzy gözden geçireris' : 'Мы рассмотрим ваш запрос' }}</span>
-                </div>
-                <div class="step">
-                  <span class="step-num">4</span>
-                  <span>{{ lang === 'tk' ? 'Haryt goşulanda size habar bereris' : 'Сообщим вам, когда товар будет добавлен' }}</span>
+                <div v-for="n in 4" :key="n" class="step">
+                  <span class="step-num">{{ n }}</span>
+                  <span>{{ $t(`request.step${n}`) }}</span>
                 </div>
               </div>
             </div>
 
             <div class="contact-card">
-              <h3>{{ lang === 'tk' ? 'Soraglaryňyz barmy?' : 'Есть вопросы?' }}</h3>
-              <p>{{ lang === 'tk' ? 'Bize ýazyň, kömek ederis!' : 'Напишите нам, мы поможем!' }}</p>
-              <a href="tel:+99365000000" class="contact-link">📞 +993 65 000 000</a>
+              <h3>{{ $t('request.questions') }}</h3>
+              <p>{{ $t('request.contactUs') }}</p>
+              <a href="tel:+99365000000" class="contact-link">{{ $t('footer.phone') }}</a>
             </div>
           </div>
 

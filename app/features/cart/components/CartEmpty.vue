@@ -1,10 +1,7 @@
 <script setup lang="ts">
-import type { Lang } from '../types'
 import { useCart } from '../composables/useCart'
 
-const props = defineProps<{ currentLang: Lang }>()
-const lang  = computed(() => props.currentLang)
-const { t } = useCart(lang)
+const { t } = useCart()
 </script>
 
 <template>

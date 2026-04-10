@@ -1,12 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'default' })
-
-const lang = ref<'tk' | 'ru'>('tk')
-onMounted(() => {
-  const saved = localStorage.getItem('silkshop_lang')
-  if (saved === 'tk' || saved === 'ru') lang.value = saved
-})
-
+import { useI18n } from 'vue-i18n'
+const { locale, t } = useI18n()
 const config   = useRuntimeConfig()
 const API      = config.public.apiBase
 const input    = ref('')
@@ -15,14 +10,13 @@ const error    = ref('')
 const order    = ref<any>(null)
 const focused  = ref(false)
 
-// ── FIX 1: get URL safely on client only ──────────────────────────────────────
+// ── Copy link (client-only) ───────────────────────────────────────────────────
 const copied = ref(false)
 function copyLink() {
   if (!import.meta.client) return
-  const url = window.location.href
-  navigator.clipboard?.writeText(url).then(() => {
+  navigator.clipboard?.writeText(window.location.href).then(() => {
     copied.value = true
-    setTimeout(() => copied.value = false, 2000)
+    setTimeout(() => (copied.value = false), 2000)
   })
 }
 
@@ -38,7 +32,7 @@ onMounted(() => {
 async function track() {
   const id = input.value.trim()
   if (!id) {
-    error.value = lang.value === 'tk' ? 'Sargyt ID giriziň' : 'Введите ID заказа'
+    error.value = t('track.enterTrackingNumber')
     return
   }
   loading.value = true
@@ -47,13 +41,8 @@ async function track() {
   try {
     order.value = await $fetch(`${API}/orders/track/${id}`)
   } catch (e: any) {
-    // ── FIX 2: show more specific error if available ────────────────────────
     const msg = e?.data?.message ?? e?.message
-    error.value = msg
-      ? msg
-      : lang.value === 'tk'
-        ? 'Sargyt tapylmady. ID-ni barlaň.'
-        : 'Заказ не найден. Проверьте ID.'
+    error.value = msg ?? t('track.notFound')
   } finally {
     loading.value = false
   }
@@ -61,12 +50,13 @@ async function track() {
 
 const STATUS_STEPS = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED']
 
-const STATUS_LABELS: Record<string, Record<string, string>> = {
-  PENDING:    { tk: 'Garaşylýar',  ru: 'Ожидание'    },
-  PROCESSING: { tk: 'Işlenilýär',  ru: 'В работе'    },
-  SHIPPED:    { tk: 'Ugradyldy',   ru: 'Отправлен'   },
-  DELIVERED:  { tk: 'Gowşuryldy', ru: 'Доставлен'   },
-  CANCELLED:  { tk: 'Ýatyryldy',  ru: 'Отменён'     },
+// Status labels now come from i18n keys
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  PENDING:    'orders.statusPending',
+  PROCESSING: 'orders.statusProcessing',
+  SHIPPED:    'orders.statusShipped',
+  DELIVERED:  'orders.statusDelivered',
+  CANCELLED:  'orders.statusCancelled',
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -85,18 +75,22 @@ const STATUS_ICONS: Record<string, string> = {
   CANCELLED:  '❌',
 }
 
+function statusLabel(status: string) {
+  return t(STATUS_LABEL_KEYS[status] ?? 'common.error')
+}
+
 function stepIndex(status: string) { return STATUS_STEPS.indexOf(status) }
 function fmt(n: number | string)   { return Number(n).toFixed(2) }
 function fmtDate(d: string) {
-  return new Date(d).toLocaleDateString(lang.value === 'tk' ? 'tk-TM' : 'ru-RU', {
-    day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  return new Date(d).toLocaleDateString(locale.value === 'tk' ? 'tk-TM' : 'ru-RU', {
+    day: '2-digit', month: 'long', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
   })
 }
 
-// ── FIX 3: safe product name — handles null/deleted products ─────────────────
 function productName(line: any): string {
-  if (!line.product) return lang.value === 'tk' ? 'Önüm' : 'Товар'
-  return lang.value === 'tk'
+  if (!line.product) return locale.value === 'tk' ? 'Önüm' : 'Товар'
+  return locale.value === 'tk'
     ? (line.product.nameTk ?? line.product.nameRu ?? 'Önüm')
     : (line.product.nameRu ?? line.product.nameTk ?? 'Товар')
 }
@@ -105,17 +99,17 @@ function productImage(line: any): string {
   return line.product?.image ?? '📦'
 }
 
-// ── FIX 4: safe total — fallback to summing lines if order.total missing ──────
 const orderTotal = computed(() => {
   if (!order.value) return 0
   if (order.value.total != null) return Number(order.value.total)
-  // Fallback: sum lines
   return (order.value.lines ?? []).reduce(
     (s: number, l: any) => s + Number(l.unitPrice ?? 0) * (l.qty ?? 1), 0
   )
 })
 
-useHead({ title: computed(() => lang.value === 'tk' ? 'Sargyt Yzarla – SilkShop' : 'Отследить заказ – SilkShop') })
+useHead({
+  title: computed(() => `${t('pages.track.title')} – SilkShop`),
+})
 </script>
 
 <template>
@@ -124,9 +118,9 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargyt Yzarla – SilkSho
     <!-- Breadcrumb -->
     <div class="bc-bar">
       <div class="bc-inner">
-        <NuxtLink to="/">{{ lang === 'tk' ? 'Baş sahypa' : 'Главная' }}</NuxtLink>
+        <NuxtLink to="/">{{ $t('footer.home') }}</NuxtLink>
         <span>›</span>
-        <span>{{ lang === 'tk' ? 'Sargyt Yzarla' : 'Отследить заказ' }}</span>
+        <span>{{ $t('pages.track.title') }}</span>
       </div>
     </div>
 
@@ -135,15 +129,12 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargyt Yzarla – SilkSho
       <!-- Hero -->
       <div class="track-hero">
         <div class="hero-icon">🚚</div>
-        <h1>{{ lang === 'tk' ? 'Sargydyňyzy Yzarlaň' : 'Отследите ваш заказ' }}</h1>
-        <p>{{ lang === 'tk'
-          ? 'Sargyt ID-ni giriziň we ýagdaýyny derhal biliň'
-          : 'Введите ID заказа и узнайте его статус' }}</p>
+        <h1>{{ $t('pages.track.title') }}</h1>
+        <p>{{ $t('pages.track.enterTrackingNumber') }}</p>
       </div>
 
       <!-- Search box -->
       <div class="search-card">
-        <!-- FIX 5: focused state uses ref, not hardcoded true -->
         <div class="search-box" :class="{ focused }">
           <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
@@ -152,7 +143,7 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargyt Yzarla – SilkSho
           <input
             v-model="input"
             class="search-input"
-            :placeholder="lang === 'tk' ? 'Sargyt ID giriziň...' : 'Введите ID заказа...'"
+            :placeholder="$t('pages.track.enterTrackingNumber')"
             @focus="focused = true"
             @blur="focused = false"
             @keydown.enter="track"
@@ -161,15 +152,11 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargyt Yzarla – SilkSho
             <svg v-if="loading" class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
             </svg>
-            <span v-else>{{ lang === 'tk' ? 'Yzarla' : 'Найти' }}</span>
+            <span v-else>{{ $t('pages.track.track') }}</span>
           </button>
         </div>
         <p v-if="error" class="search-error">⚠ {{ error }}</p>
-        <p class="search-hint">
-          {{ lang === 'tk'
-            ? '💡 Sargyt ID-ni e-poçtaňyzda ýa-da sargyt tassyklamasynda tapyp bilersiňiz'
-            : '💡 ID заказа можно найти в письме подтверждения или в разделе «Мои заказы»' }}
-        </p>
+        <p class="search-hint">💡 {{ $t('pages.track.orderInfo') }}</p>
       </div>
 
       <!-- Result -->
@@ -179,7 +166,7 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargyt Yzarla – SilkSho
           <!-- Order header -->
           <div class="order-header">
             <div class="order-id-wrap">
-              <span class="order-label">{{ lang === 'tk' ? 'Sargyt' : 'Заказ' }}</span>
+              <span class="order-label">{{ $t('orders.orderNumber') }}</span>
               <span class="order-id">#{{ order.id.slice(-10).toUpperCase() }}</span>
             </div>
             <div class="order-status-wrap">
@@ -191,17 +178,17 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargyt Yzarla – SilkSho
                   color:      STATUS_COLORS[order.status] ?? '#6B7280',
                   border:    `1.5px solid ${(STATUS_COLORS[order.status] ?? '#6B7280')}30`,
                 }"
-              >{{ STATUS_LABELS[order.status]?.[lang] ?? order.status }}</span>
+              >{{ statusLabel(order.status) }}</span>
             </div>
           </div>
 
           <div class="order-date">
-            🗓 {{ lang === 'tk' ? 'Sargyt edildi' : 'Заказ оформлен' }}: {{ fmtDate(order.createdAt) }}
+            🗓 {{ $t('orders.date') }}: {{ fmtDate(order.createdAt) }}
           </div>
 
           <!-- Progress tracker -->
           <div v-if="order.status !== 'CANCELLED'" class="progress-section">
-            <h3 class="progress-title">{{ lang === 'tk' ? 'Sargyt ýoly' : 'Путь заказа' }}</h3>
+            <h3 class="progress-title">{{ $t('pages.track.history') }}</h3>
             <div class="progress-track">
               <div v-for="(step, i) in STATUS_STEPS" :key="step" class="progress-step">
                 <div class="step-connector">
@@ -233,20 +220,19 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargyt Yzarla – SilkSho
                   :style="i === stepIndex(order.status)
                     ? { color: STATUS_COLORS[order.status], fontWeight: '700' }
                     : {}"
-                >{{ STATUS_LABELS[step]?.[lang] }}</div>
+                >{{ statusLabel(step) }}</div>
               </div>
             </div>
           </div>
 
           <div v-else class="cancelled-box">
-            ❌ {{ lang === 'tk' ? 'Bu sargyt ýatyryldy' : 'Этот заказ был отменён' }}
+            ❌ {{ $t('orders.statusCancelled') }}
           </div>
 
           <!-- Order items -->
           <div class="items-section">
-            <h3 class="items-title">{{ lang === 'tk' ? 'Sargyt düzümi' : 'Состав заказа' }}</h3>
+            <h3 class="items-title">{{ $t('pages.track.orderInfo') }}</h3>
             <div class="items-list">
-              <!-- FIX 6: safe key, safe product access -->
               <div v-for="(line, idx) in (order.lines ?? [])" :key="line.id ?? idx" class="item-row">
                 <div class="item-thumb">
                   <span class="item-emoji">{{ productImage(line) }}</span>
@@ -254,7 +240,6 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargyt Yzarla – SilkSho
                 <div class="item-info">
                   <div class="item-name">{{ productName(line) }}</div>
                   <div class="item-qty">× {{ line.qty }}</div>
-                  <!-- FIX 7: show selected options if present -->
                   <div v-if="line.options && Object.keys(line.options).length" class="item-opts">
                     <span v-for="(val, key) in line.options" :key="key" class="opt-chip">
                       {{ val }}
@@ -265,8 +250,7 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargyt Yzarla – SilkSho
               </div>
             </div>
             <div class="order-total">
-              <span>{{ lang === 'tk' ? 'Jemi' : 'Итого' }}</span>
-              <!-- FIX 4: use safe computed total -->
+              <span>{{ $t('cart.total') }}</span>
               <strong>${{ fmt(orderTotal) }}</strong>
             </div>
           </div>
@@ -279,15 +263,13 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargyt Yzarla – SilkSho
             {{ order.note }}
           </div>
 
-          <!-- FIX 1: share button uses safe client-only function -->
+          <!-- Share row -->
           <div class="share-row">
             <button class="share-btn" @click="copyLink">
-              {{ copied
-                ? (lang === 'tk' ? '✓ Göçürildi!' : '✓ Скопировано!')
-                : (lang === 'tk' ? '🔗 Salgysy göçür' : '🔗 Скопировать ссылку') }}
+              {{ copied ? '✓ ' + $t('track.copied') : '🔗 ' + $t('track.copy') }}
             </button>
             <NuxtLink to="/products" class="continue-btn">
-              {{ lang === 'tk' ? 'Söwda dowam et →' : 'Продолжить покупки →' }}
+              {{ $t('common.continueShopping') }} →
             </NuxtLink>
           </div>
 
@@ -298,17 +280,17 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'Sargyt Yzarla – SilkSho
       <div v-if="!order" class="info-cards">
         <div
           v-for="c in [
-            { icon: '⚡', title: lang === 'tk' ? 'Tiz Eltip Beriş' : 'Быстрая доставка', sub: lang === 'tk' ? '7–15 gün' : '7–15 дней' },
-            { icon: '🚚', title: lang === 'tk' ? 'Adaty Eltip Beriş' : 'Обычная доставка', sub: lang === 'tk' ? '15–30 gün' : '15–30 дней' },
-            { icon: '📞', title: lang === 'tk' ? '7/24 Goldaw' : 'Поддержка 24/7', sub: lang === 'tk' ? 'Her wagt ýanynyzda' : 'Всегда на связи' },
+            { icon: '⚡', titleKey: 'footer.delivery1', subKey: 'footer.delivery1' },
+            { icon: '🚚', titleKey: 'footer.delivery2', subKey: 'footer.delivery2' },
+            { icon: '📞', titleKey: 'footer.contact',  subKey: 'footer.phone'    },
           ]"
-          :key="c.title"
+          :key="c.titleKey"
           class="info-card"
         >
           <span class="card-icon">{{ c.icon }}</span>
           <div>
-            <div class="card-title">{{ c.title }}</div>
-            <div class="card-sub">{{ c.sub }}</div>
+            <div class="card-title">{{ $t(c.titleKey) }}</div>
+            <div class="card-sub">{{ $t(c.subKey) }}</div>
           </div>
         </div>
       </div>

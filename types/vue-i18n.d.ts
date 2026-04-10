@@ -1,0 +1,366 @@
+import type { DefineLocaleMessage } from 'vue-i18n';
+
+declare module 'vue-i18n' {
+  // Extend the DefineLocaleMessage interface with all translation keys
+  export interface DefineLocaleMessage {
+    common: {
+      appName: string;
+      welcome: string;
+      loading: string;
+      error: string;
+      retry: string;
+      cancel: string;
+      confirm: string;
+      save: string;
+      delete: string;
+      edit: string;
+      close: string;
+      back: string;
+      next: string;
+      previous: string;
+      search: string;
+      searchPlaceholder: string;
+      noResults: string;
+      viewAll: string;
+      continueShopping: string;
+      goToCheckout: string;
+      currency: string;
+    };
+    header: {
+      searchPlaceholder: string;
+      searchButton: string;
+      searching: string;
+      products: string;
+      categories: string;
+      delivery: string;
+      adminLink: string;
+    };
+    cart: {
+      title: string;
+      items: string;
+      itemCount: string;
+      clearCart: string;
+      orderSummary: string;
+      subtotal: string;
+      shipping: string;
+      total: string;
+      checkout: string;
+      checkoutLoading: string;
+      orderAccepted: string;
+      orderNumber: string;
+      viewOrders: string;
+      continueShopping: string;
+      empty: string;
+      emptyMessage: string;
+      startShopping: string;
+      removeConfirm: string;
+      removeYes: string;
+      removeNo: string;
+      clearConfirm: string;
+      clearYes: string;
+      clearNo: string;
+    };
+    cartItem: {
+      remove: string;
+      outOfStock: string;
+      inStock: string;
+      seller: string;
+      color: string;
+      size: string;
+      options: string;
+    };
+    product: {
+      price: string;
+      oldPrice: string;
+      addToCart: string;
+      buyNow: string;
+      description: string;
+      options: string;
+      selectOptions: string;
+      quantity: string;
+      inStock: string;
+      outOfStock: string;
+      seller: string;
+      category: string;
+      comments: string;
+      addComment: string;
+      commentPlaceholder: string;
+      postComment: string;
+      noComments: string;
+      loadMore: string;
+    };
+    productDetail: {
+      selectedOptions: string;
+      total: string;
+      addToCartSuccess: string;
+      addToCartError: string;
+      quantity: string;
+      outOfStock: string;
+    };
+    checkout: {
+      successTitle: string;
+      orderNumber: string;
+      viewOrders: string;
+      continueShopping: string;
+    };
+    pages: {
+      home: {
+        title: string;
+        heroTitle: string;
+        heroSubtitle: string;
+        newArrivals: string;
+        featuredProducts: string;
+        viewAllProducts: string;
+        shopNow: string;
+      };
+      products: {
+        title: string;
+        searchPlaceholder: string;
+        filterByCategory: string;
+        allCategories: string;
+        sortBy: string;
+        sortNewest: string;
+        sortPriceLow: string;
+        sortPriceHigh: string;
+        sortName: string;
+        noProducts: string;
+        loadMore: string;
+      };
+      productDetail: {
+        notFound: string;
+        backToProducts: string;
+        relatedProducts: string;
+        description: string;
+        specifications: string;
+        reviews: string;
+      };
+      orders: {
+        title: string;
+        orderNumber: string;
+        date: string;
+        status: string;
+        total: string;
+        noOrders: string;
+        emptyMessage: string;
+        statusPending: string;
+        statusProcessing: string;
+        statusShipped: string;
+        statusDelivered: string;
+        statusCancelled: string;
+        viewDetails: string;
+        orderDetails: string;
+      };
+      wishlist: {
+        title: string;
+        empty: string;
+        emptyMessage: string;
+        addToCart: string;
+        remove: string;
+        movedToCart: string;
+      };
+      track: {
+        title: string;
+        trackingNumber: string;
+        enterTrackingNumber: string;
+        track: string;
+        tracking: string;
+        status: string;
+        estimatedDelivery: string;
+        notFound: string;
+        history: string;
+        orderInfo: string;
+      };
+      signin: {
+        title: string;
+        email: string;
+        password: string;
+        login: string;
+        loginButton: string;
+        noAccount: string;
+        createAccount: string;
+        forgotPassword: string;
+        rememberMe: string;
+        error: string;
+        invalidCredentials: string;
+        success: string;
+      };
+      signup: {
+        title: string;
+        name: string;
+        email: string;
+        password: string;
+        confirmPassword: string;
+        register: string;
+        registerButton: string;
+        hasAccount: string;
+        loginNow: string;
+        termsAgree: string;
+        terms: string;
+        privacy: string;
+        error: string;
+        emailExists: string;
+        passwordMismatch: string;
+        success: string;
+      };
+      request: {
+        title: string;
+        name: string;
+        email: string;
+        phone: string;
+        product: string;
+        description: string;
+        submit: string;
+        submitButton: string;
+        success: string;
+        error: string;
+        fillAllFields: string;
+        invalidEmail: string;
+      };
+    };
+    footer: {
+      brandDesc: string;
+      brandDescRu: string;
+      pages: string;
+      pagesRu: string;
+      home: string;
+      homeRu: string;
+      products: string;
+      productsRu: string;
+      cart: string;
+      cartRu: string;
+      orders: string;
+      ordersRu: string;
+      contact: string;
+      contactRu: string;
+      phone: string;
+      email: string;
+      address: string;
+      addressRu: string;
+      delivery1: string;
+      delivery1Ru: string;
+      delivery2: string;
+      delivery2Ru: string;
+      copyright: string;
+      copyrightRu: string;
+      madeWithLove: string;
+    };
+    productComments: {
+      noComments: string;
+      writeComment: string;
+      post: string;
+      posting: string;
+      anonymous: string;
+      dateFormat: string;
+      loginToComment: string;
+      loadMore: string;
+    };
+    productOptions: {
+      selectOption: string;
+      required: string;
+      select: string;
+    };
+    productVariant: {
+      select: string;
+      unavailable: string;
+    };
+    quickAddModal: {
+      quickAdd: string;
+      selectOptions: string;
+      required: string;
+      addToCart: string;
+      adding: string;
+    };
+    orders: {
+      noOrders: string;
+      emptyMessage: string;
+      orderNumber: string;
+      date: string;
+      status: string;
+      total: string;
+      statusPending: string;
+      statusProcessing: string;
+      statusShipped: string;
+      statusDelivered: string;
+      statusCancelled: string;
+      viewDetails: string;
+    };
+    wishlist: {
+      title: string;
+      empty: string;
+      emptyMessage: string;
+      addToCart: string;
+      remove: string;
+      movedToCart: string;
+      quantity: string;
+    };
+    track: {
+      title: string;
+      trackingNumber: string;
+      enterTrackingNumber: string;
+      notFound: string;
+      history: string;
+      orderInfo: string;
+    };
+    auth: {
+      signin: {
+        title: string;
+        email: string;
+        password: string;
+        login: string;
+        loginButton: string;
+        noAccount: string;
+        createAccount: string;
+        forgotPassword: string;
+        rememberMe: string;
+        error: string;
+        invalidCredentials: string;
+        success: string;
+      };
+      signup: {
+        title: string;
+        name: string;
+        email: string;
+        password: string;
+        confirmPassword: string;
+        register: string;
+        registerButton: string;
+        hasAccount: string;
+        loginNow: string;
+        termsAgree: string;
+        terms: string;
+        privacy: string;
+        error: string;
+        emailExists: string;
+        passwordMismatch: string;
+        success: string;
+      };
+      logout: string;
+      profile: string;
+      orders: string;
+      wishlist: string;
+    };
+    request: {
+      title: string;
+      name: string;
+      email: string;
+      phone: string;
+      product: string;
+      description: string;
+      submit: string;
+      submitButton: string;
+      success: string;
+      error: string;
+      fillAllFields: string;
+      invalidEmail: string;
+    };
+    admin: {
+      dashboard: string;
+      products: string;
+      orders: string;
+      customers: string;
+      settings: string;
+      analytics: string;
+      logout: string;
+    };
+  };
+}

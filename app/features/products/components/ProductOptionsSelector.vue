@@ -1,20 +1,22 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { ProductOption, SelectedOptions } from '../types/product'
 
 const props = defineProps<{
   modelValue: SelectedOptions
   options:    ProductOption[]
-  lang:       'tk' | 'ru'
 }>()
 
 const emit = defineEmits<{
   (e: 'update:modelValue', v: SelectedOptions): void
 }>()
 
+const { locale } = useI18n()
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function optName(opt: ProductOption): string {
-  return props.lang === 'tk' ? opt.nameTk : opt.nameRu
+  return locale.value === 'tk' ? opt.nameTk : opt.nameRu
 }
 
 function select(optId: string, val: string) {
