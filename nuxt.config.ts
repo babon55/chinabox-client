@@ -7,9 +7,7 @@ import {
   setupFeatureImports,
 } from "./config/hooks/index";
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import tkMessages from './locales/tk.json';
-import ruMessages from './locales/ru.json';
+import { dirname } from 'node:path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -34,20 +32,11 @@ export default defineNuxtConfig({
     },
   ],
 
-  // Vue I18n configuration
   vite: {
     plugins: [
       // @ts-ignore - Vue I18n plugin auto-registers $t globally
       await import('@intlify/unplugin-vue-i18n/vite').then(mod => mod.default({
         runtimeOnly: true,
-        runtimeConfig: {
-          fallbackLocale: 'tk',
-          locale: 'tk',
-          messages: {
-            tk: tkMessages,
-            ru: ruMessages
-          }
-        }
       }))
     ]
   },
@@ -76,7 +65,9 @@ export default defineNuxtConfig({
   },
 
   typescript: {
-    types: ['~/types/vue-i18n.d.ts']
+    tsConfig: {
+      include: ['./types/vue-i18n.d.ts']
+    }
   },
 
   watch: [

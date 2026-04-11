@@ -12,7 +12,6 @@ import HeaderMobileMenu from './header/HeaderMobileMenu.vue'
 const signinStore = useSigninStore()
 const cartStore   = useCartStore()
 
-// Use Vue I18n
 const { locale } = useI18n()
 
 onMounted(() => {
@@ -78,6 +77,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
       <HeaderMobileMenu
         v-if="mobileOpen"
         @close="mobileOpen = false"
+        @update:lang="onLangChange"
       />
     </Transition>
   </header>
@@ -100,7 +100,6 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   gap: 24px;
 }
 
-/* ── Hamburger / Close button ── */
 .mobile-toggle {
   display: none;
   flex-direction: column;
@@ -118,22 +117,15 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   transition: border-color 0.2s, background 0.2s;
 }
 .mobile-toggle:hover { border-color: #E8A020; }
-
-/* When open → looks like a proper X close button */
-.mobile-toggle.open {
-  background: #F3F4F6;
-  border-color: #D1D5DB;
-}
+.mobile-toggle.open { background: #F3F4F6; border-color: #D1D5DB; }
 
 .bar {
   display: block;
-  width: 16px;
-  height: 1.5px;
+  width: 16px; height: 1.5px;
   background: #0F1117;
   border-radius: 2px;
   transition: transform 0.25s ease, opacity 0.2s ease;
 }
-
 .mobile-toggle.open .bar:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
 .mobile-toggle.open .bar:nth-child(2) { opacity: 0; transform: scaleX(0); }
 .mobile-toggle.open .bar:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
@@ -143,19 +135,8 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   .header-inner  { padding: 10px 16px; gap: 10px; }
 }
 
-/* X state */
-.mobile-toggle.open .bar:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
-.mobile-toggle.open .bar:nth-child(2) { opacity: 0; transform: scaleX(0); }
-.mobile-toggle.open .bar:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
-
-/* Mobile menu slide transition */
 .mobile-slide-enter-active { transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.16,1,0.3,1); }
 .mobile-slide-leave-active  { transition: opacity 0.18s ease, transform 0.18s ease-in; }
 .mobile-slide-enter-from,
 .mobile-slide-leave-to      { opacity: 0; transform: translateY(-8px); }
-
-@media (max-width: 768px) {
-  .mobile-toggle { display: flex; }
-  .header-inner  { padding: 10px 16px; gap: 10px; }
-}
 </style>

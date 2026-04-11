@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 definePageMeta({ layout: 'default' })
@@ -15,58 +15,56 @@ const cartStore  = useCartStore()
 const wishlist   = useWishlistStore()
 const homeDelivery = ref(false)
 
-onMounted(() => {
-  const saved = localStorage.getItem('silkshop_lang')
-  if (saved === 'tk' || saved === 'ru') locale.value = saved
-
-  if (product.value) {
-    const key     = 'silkshop_viewed'
-    const list    = JSON.parse(localStorage.getItem(key) ?? '[]') as string[]
-    const updated = [product.value.id, ...list.filter(i => i !== product.value!.id)].slice(0, 10)
-    localStorage.setItem(key, JSON.stringify(updated))
-  }
-})
-
 // ── Route / API ───────────────────────────────────────────────────────────────
 const route  = useRoute()
 const config = useRuntimeConfig()
 const API    = config.public.apiBase
+const id = computed(() => route.params.id as string)
 
-const { data: product, error } = await useAsyncData(
-  `product-${route.params.id}`,
-  () => $fetch<Product>(`${API}/products/${route.params.id}`)
+const { data: product, pending: productPending, error } = useAsyncData(
+  `product-${id.value}`,
+  () => $fetch<Product>(`${API}/products/${id.value}`),
+  { watch: [id] }
 )
-if (error.value || !product.value) throw createError({ statusCode: 404, message: 'Product not found' })
 
-const { data: relatedData } = await useAsyncData(
-  `related-${route.params.id}`,
+const { data: relatedData } = useAsyncData(
+  `related-${id.value}`,
   async () => {
     if (!product.value) return { items: [] as Product[] }
     const res = await $fetch<{ items: Product[] }>(`${API}/products`, { params: { limit: 8 } })
-    return { items: res.items.filter(p => p.category?.id === product.value!.category?.id && p.id !== product.value!.id).slice(0, 4) }
-  }
+    return {
+      items: res.items
+        .filter(p => p.category?.id === product.value!.category?.id && p.id !== product.value!.id)
+        .slice(0, 4)
+    }
+  },
+  { watch: [id, product] }
 )
 const related = computed(() => relatedData.value?.items ?? [])
 
 // ── Gallery ───────────────────────────────────────────────────────────────────
 const allImages = computed(() => {
   if (!product.value) return []
-  const urls = product.value.imageUrls?.length
+  return product.value.imageUrls?.length
     ? product.value.imageUrls
     : product.value.imageUrl
       ? [product.value.imageUrl]
       : []
-  return urls
 })
-const activeIdx   = ref(0)
-const activeImage = computed(() => allImages.value[activeIdx.value] ?? null)
+const activeIdx    = ref(0)
+const activeImage  = computed(() => allImages.value[activeIdx.value] ?? null)
 const lightboxOpen = ref(false)
+
+// Reset gallery index when product changes
+watch(() => product.value?.id, () => { activeIdx.value = 0 })
 
 function prevImage() { activeIdx.value = (activeIdx.value - 1 + allImages.value.length) % allImages.value.length }
 function nextImage() { activeIdx.value = (activeIdx.value + 1) % allImages.value.length }
 
-// keyboard nav for lightbox
 onMounted(() => {
+  const saved = localStorage.getItem('silkshop_lang')
+  if (saved === 'tk' || saved === 'ru') locale.value = saved
+
   window.addEventListener('keydown', (e) => {
     if (!lightboxOpen.value) return
     if (e.key === 'ArrowLeft')  prevImage()
@@ -75,14 +73,22 @@ onMounted(() => {
   })
 })
 
+// Save to recently viewed when product loads
+watch(product, (p) => {
+  if (!p) return
+  const key     = 'silkshop_viewed'
+  const list    = JSON.parse(localStorage.getItem(key) ?? '[]') as string[]
+  const updated = [p.id, ...list.filter(i => i !== p.id)].slice(0, 10)
+  localStorage.setItem(key, JSON.stringify(updated))
+})
+
 // ── Delivery ──────────────────────────────────────────────────────────────────
 const FAST_RATE   = 11
 const SIMPLE_RATE = 7
-const HOME_RATE   = 1  // ← ADD
 
-const delivery = ref<'simple' | 'fast' | 'home'>('simple')  // ← ADD 'home'
-const qty         = ref(1)
-const added       = ref(false)
+const delivery = ref<'simple' | 'fast'>('simple')
+const qty      = ref(1)
+const added    = ref(false)
 
 const markup       = computed(() => product.value?.markup ?? 50)
 const clientPrice  = computed(() => Number(product.value?.price ?? 0) * (1 + markup.value / 100))
@@ -91,12 +97,15 @@ const deliveryCost = computed(() =>
   weightKg.value * (delivery.value === 'fast' ? FAST_RATE : SIMPLE_RATE)
   + (homeDelivery.value ? 1 : 0)
 )
-const totalPrice   = computed(() => clientPrice.value + deliveryCost.value)
+const totalPrice = computed(() => clientPrice.value + deliveryCost.value)
 
 // ── Options ───────────────────────────────────────────────────────────────────
 const selectedOptions    = ref<SelectedOptions>({})
 const optionsSelectorRef = ref<InstanceType<typeof ProductOptionsSelector> | null>(null)
 const hasOptions         = computed(() => (product.value?.options ?? []).length > 0)
+
+// Reset options when product changes
+watch(() => product.value?.id, () => { selectedOptions.value = {} })
 
 // ── Cart ──────────────────────────────────────────────────────────────────────
 function addToCart() {
@@ -105,11 +114,13 @@ function addToCart() {
 
   cartStore.addItem({
     id:       product.value.id,
-    name:     { tk: product.value.nameTk, ru: product.value.nameRu },
+    nameTk:  product.value.nameTk,
+  nameRu:  product.value.nameRu,
     image:    activeImage.value ?? product.value.imageUrl ?? product.value.image,
     price:    clientPrice.value,
     quantity: qty.value,
     seller:   'SilkShop',
+    weightG:  product.value.weightG ?? null,
     inStock:  product.value.stock > 0,
     options:  Object.keys(selectedOptions.value).length ? { ...selectedOptions.value } : undefined,
   })
@@ -121,11 +132,13 @@ const addedRelated = ref<string | null>(null)
 function addRelatedToCart(p: Product) {
   cartStore.addItem({
     id:       p.id,
-    name:     { tk: p.nameTk, ru: p.nameRu },
+     nameTk:  p.nameTk,
+    nameRu:  p.nameRu,
     image:    p.imageUrls?.[0] ?? p.imageUrl ?? p.image,
     price:    Number(p.price) * (1 + (p.markup ?? 50) / 100),
     quantity: 1,
     seller:   'SilkShop',
+    weightG:  p.weightG ?? null,
     inStock:  p.stock > 0,
   })
   addedRelated.value = p.id
@@ -133,11 +146,6 @@ function addRelatedToCart(p: Product) {
 }
 
 function fmt(n: number) { return Number(n).toFixed(2) }
-
-function weightDisplay(g: number | null | undefined): string {
-  if (!g) return ''
-  return g >= 1000 ? `${(g / 1000).toFixed(2)} kg` : `${g} g`
-}
 
 useHead({
   title: computed(() =>
@@ -149,7 +157,36 @@ useHead({
 </script>
 
 <template>
-  <div v-if="product" class="product-page">
+  <div>
+
+  <!-- ── Skeleton ─────────────────────────────────────────────────────────── -->
+  <div v-if="productPending" class="product-skeleton">
+    <div class="sk-breadcrumb"></div>
+    <div class="sk-layout">
+      <div class="sk-img-col"></div>
+      <div class="sk-info-col">
+        <div class="sk-line short"></div>
+        <div class="sk-line long"></div>
+        <div class="sk-line medium"></div>
+        <div class="sk-line short"></div>
+        <div class="sk-line long"></div>
+        <div class="sk-line medium"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Error ─────────────────────────────────────────────────────────────── -->
+  <div v-else-if="error || !product" class="error-state">
+    <div class="error-icon">😕</div>
+    <h2>{{ lang === 'tk' ? 'Haryt tapylmady' : 'Товар не найден' }}</h2>
+    <p>{{ lang === 'tk' ? 'Haryt mövcüt däl ýa-da pozulypdyr' : 'Товар не существует или был удалён' }}</p>
+    <NuxtLink to="/products" class="error-back">
+      ← {{ lang === 'tk' ? 'Harytlara dolan' : 'Вернуться к товарам' }}
+    </NuxtLink>
+  </div>
+
+  <!-- ── Product page ───────────────────────────────────────────────────────── -->
+  <div v-else class="product-page">
 
     <!-- Lightbox -->
     <Teleport to="body">
@@ -182,7 +219,7 @@ useHead({
     <div class="page-inner">
       <div class="product-layout">
 
-        <!-- ── Image column ─────────────────────────────────────────────────── -->
+        <!-- ── Image column ───────────────────────────────────────────────── -->
         <div class="image-col">
 
           <!-- Main image -->
@@ -190,19 +227,16 @@ useHead({
             <img v-if="activeImage" :src="activeImage" :alt="lang === 'tk' ? product.nameTk : product.nameRu" class="main-img" />
             <span v-else class="big-emoji">{{ product.image }}</span>
 
-            <!-- Image count pill -->
             <div v-if="allImages.length > 1" class="img-count-pill">
               {{ activeIdx + 1 }} / {{ allImages.length }}
             </div>
 
-            <!-- Expand icon -->
             <div v-if="allImages.length" class="expand-hint">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
               </svg>
             </div>
 
-            <!-- Prev/Next on main image -->
             <button v-if="allImages.length > 1" class="img-nav img-prev" @click.stop="prevImage">‹</button>
             <button v-if="allImages.length > 1" class="img-nav img-next" @click.stop="nextImage">›</button>
           </div>
@@ -238,7 +272,7 @@ useHead({
           </button>
         </div>
 
-        <!-- ── Info column ──────────────────────────────────────────────────── -->
+        <!-- ── Info column ────────────────────────────────────────────────── -->
         <div class="info-col">
 
           <div class="prod-cat">{{ lang === 'tk' ? product.category.nameTk : product.category.nameRu }}</div>
@@ -296,9 +330,7 @@ useHead({
             <div class="home-delivery-toggle">
               <label class="hd-label">
                 <input type="checkbox" v-model="homeDelivery" />
-                <span class="hd-text">
-                  🏠 {{ lang === 'tk' ? 'Öýe eltip bermek' : 'Доставка домой' }}
-                </span>
+                <span class="hd-text">🏠 {{ lang === 'tk' ? 'Öýe eltip bermek' : 'Доставка домой' }}</span>
                 <span class="hd-cost">+$1.00</span>
               </label>
             </div>
@@ -339,7 +371,11 @@ useHead({
             </div>
             <button :class="['add-btn', { added }]" :disabled="product.stock === 0" @click="addToCart">
               <span v-if="!added">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16" style="margin-right:6px;vertical-align:middle"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16" style="margin-right:6px;vertical-align:middle">
+                  <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                  <line x1="3" y1="6" x2="21" y2="6"/>
+                  <path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
                 {{ lang === 'tk' ? 'Sebede Goş' : 'В корзину' }}
               </span>
               <span v-else>✓ {{ lang === 'tk' ? 'Goşuldy!' : 'Добавлено!' }}</span>
@@ -370,7 +406,7 @@ useHead({
             <NuxtLink :to="`/products/${p.id}`" class="rel-img-wrap">
               <img
                 v-if="p.imageUrls?.length || p.imageUrl"
-                :src="p.imageUrls?.[0] ?? p.imageUrl"
+                :src="p.imageUrls?.[0] ?? p.imageUrl ?? p.image"
                 :alt="lang === 'tk' ? p.nameTk : p.nameRu"
                 class="rel-img"
               />
@@ -394,9 +430,31 @@ useHead({
     </section>
 
   </div>
+  </div>
 </template>
 
 <style scoped>
+/* ── Skeleton ── */
+.product-skeleton { max-width: 1100px; margin: 40px auto; padding: 0 24px; }
+.sk-breadcrumb { height: 12px; width: 280px; border-radius: 6px; margin-bottom: 32px; background: linear-gradient(90deg, var(--surface) 25%, var(--border-light) 50%, var(--surface) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+.sk-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
+.sk-img-col { aspect-ratio: 1; border-radius: var(--radius-xl); background: linear-gradient(90deg, var(--surface) 25%, var(--border-light) 50%, var(--surface) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+.sk-info-col { display: flex; flex-direction: column; gap: 16px; padding-top: 20px; }
+.sk-line { height: 14px; border-radius: 6px; background: linear-gradient(90deg, var(--surface) 25%, var(--border-light) 50%, var(--surface) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+.sk-line.short  { width: 35%; }
+.sk-line.medium { width: 60%; }
+.sk-line.long   { width: 90%; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* ── Error ── */
+.error-state { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 100px 20px; text-align: center; }
+.error-icon  { font-size: 64px; }
+.error-state h2 { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--dark); }
+.error-state p  { font-size: 14px; color: var(--subtle); font-family: var(--font-body); }
+.error-back { font-size: 14px; font-weight: 700; color: var(--gold); text-decoration: none; }
+.error-back:hover { text-decoration: underline; }
+
+/* ── Product page ── */
 .product-page { min-height: 80vh; background: var(--surface); }
 
 /* Breadcrumb */
@@ -430,8 +488,7 @@ useHead({
   background: rgba(0,0,0,.55); color: #fff;
   font-size: 12px; font-weight: 700;
   padding: 4px 12px; border-radius: var(--radius-pill);
-  backdrop-filter: blur(4px);
-  pointer-events: none;
+  backdrop-filter: blur(4px); pointer-events: none;
 }
 
 .expand-hint {
@@ -439,8 +496,7 @@ useHead({
   width: 32px; height: 32px; border-radius: var(--radius-md);
   background: rgba(255,255,255,.85); backdrop-filter: blur(4px);
   display: flex; align-items: center; justify-content: center;
-  opacity: 0; transition: opacity .2s;
-  pointer-events: none;
+  opacity: 0; transition: opacity .2s; pointer-events: none;
 }
 .main-image-wrap:hover .expand-hint { opacity: 1; }
 .expand-hint svg { width: 14px; height: 14px; color: var(--dark); }
@@ -452,8 +508,7 @@ useHead({
   border: 1.5px solid var(--border-light);
   font-size: 20px; color: var(--dark); cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  opacity: 0; transition: opacity .2s, transform .15s;
-  z-index: 5;
+  opacity: 0; transition: opacity .2s, transform .15s; z-index: 5;
 }
 .img-prev { left: 10px; }
 .img-next { right: 10px; }
@@ -468,8 +523,7 @@ useHead({
   border-radius: var(--radius-md); overflow: hidden;
   border: 2px solid var(--border-light);
   background: var(--surface); cursor: pointer;
-  transition: border-color .15s, transform .15s;
-  padding: 0;
+  transition: border-color .15s, transform .15s; padding: 0;
 }
 .thumb img { width: 100%; height: 100%; object-fit: cover; }
 .thumb.active { border-color: var(--gold); transform: scale(1.05); }
@@ -506,9 +560,6 @@ useHead({
 .price-main  { font-family: var(--font-display); font-size: 36px; font-weight: 800; color: var(--gold); }
 .price-meta  { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .price-label { font-size: 11px; color: var(--subtle); font-family: var(--font-body); }
-.markup-chip { font-size: 11px; font-weight: 700; background: #EDE9FE; color: #7C3AED; padding: 2px 8px; border-radius: var(--radius-pill); }
-
-.weight-info { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--subtle); background: var(--surface); padding: 8px 14px; border-radius: var(--radius-md); margin-bottom: 14px; font-family: var(--font-body); }
 
 /* Section label */
 .section-label { font-size: 12px; font-weight: 700; color: var(--dark); margin-bottom: 10px; font-family: var(--font-body); text-transform: uppercase; letter-spacing: .04em; }
@@ -522,7 +573,13 @@ useHead({
 .d-body { flex: 1; }
 .d-top  { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: var(--dark); font-family: var(--font-body); }
 .d-cost { color: var(--gold); }
-.d-rate { font-size: 11px; color: var(--subtle); margin-top: 3px; display: block; font-family: var(--font-body); }
+
+/* Home delivery */
+.home-delivery-toggle { margin-top: 10px; padding: 12px 14px; border-radius: var(--radius-md); border: 1.5px solid var(--border); background: var(--white); }
+.hd-label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.hd-label input[type="checkbox"] { accent-color: var(--gold); width: 16px; height: 16px; }
+.hd-text  { flex: 1; font-size: 13px; font-weight: 700; color: var(--dark); font-family: var(--font-body); }
+.hd-cost  { font-size: 13px; font-weight: 700; color: var(--gold); }
 
 /* Total */
 .total-box { background: var(--white); border-radius: var(--radius-lg); border: 1.5px solid var(--border-light); overflow: hidden; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
@@ -555,7 +612,7 @@ useHead({
   transition: all .2s; box-shadow: 0 4px 16px var(--gold-shadow);
   display: flex; align-items: center; justify-content: center;
 }
-.add-btn.added  { background: linear-gradient(135deg, #22C55E, #16A34A); box-shadow: none; }
+.add-btn.added   { background: linear-gradient(135deg, #22C55E, #16A34A); box-shadow: none; }
 .add-btn:disabled { background: var(--border); box-shadow: none; cursor: not-allowed; color: var(--subtle); }
 .add-btn:hover:not(:disabled):not(.added) { transform: translateY(-2px); box-shadow: 0 8px 24px var(--gold-shadow); }
 
@@ -583,7 +640,7 @@ useHead({
 
 .rel-body { padding: 12px 14px; }
 .rel-cat  { font-size: 10px; color: var(--subtle); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; font-family: var(--font-body); }
-.rel-name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 13px; font-weight: 700; color: var(--dark); text-decoration: none; line-height: 1.35; margin-bottom: 10px; font-family: var(--font-body); display: block; }
+.rel-name { display: block; overflow: hidden; font-size: 13px; font-weight: 700; color: var(--dark); text-decoration: none; line-height: 1.35; margin-bottom: 10px; font-family: var(--font-body); }
 .rel-name:hover { color: var(--gold); }
 .rel-footer { display: flex; align-items: center; justify-content: space-between; }
 .rel-price  { font-family: var(--font-display); font-size: 16px; font-weight: 800; color: var(--gold); }
@@ -596,8 +653,7 @@ useHead({
 .lightbox {
   position: fixed; inset: 0; z-index: 9999;
   background: rgba(0,0,0,.92);
-  display: flex; align-items: center; justify-content: center;
-  padding: 20px;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
 }
 .lb-img { max-width: 90vw; max-height: 88vh; object-fit: contain; border-radius: var(--radius-lg); box-shadow: 0 24px 80px rgba(0,0,0,.5); }
 .lb-close {
@@ -605,8 +661,7 @@ useHead({
   width: 40px; height: 40px; border-radius: 50%;
   background: rgba(255,255,255,.15); border: none;
   color: white; font-size: 24px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: background .15s;
+  display: flex; align-items: center; justify-content: center; transition: background .15s;
 }
 .lb-close:hover { background: rgba(255,255,255,.25); }
 .lb-arrow {
@@ -614,37 +669,21 @@ useHead({
   width: 44px; height: 44px; border-radius: 50%;
   background: rgba(255,255,255,.15); border: none;
   color: white; font-size: 26px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: background .15s;
+  display: flex; align-items: center; justify-content: center; transition: background .15s;
 }
 .lb-arrow:hover { background: rgba(255,255,255,.25); }
 .lb-prev { left: 20px; }
 .lb-next { right: 20px; }
 .lb-counter { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,.7); font-size: 13px; font-weight: 600; font-family: var(--font-body); }
-
 .lb-enter-active, .lb-leave-active { transition: opacity .2s; }
 .lb-enter-from, .lb-leave-to { opacity: 0; }
-.home-delivery-toggle {
-  margin-top: 10px;
-  padding: 12px 14px;
-  border-radius: var(--radius-md);
-  border: 1.5px solid var(--border);
-  background: var(--white);
-}
-.hd-label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-.hd-label input[type="checkbox"] { accent-color: var(--gold); width: 16px; height: 16px; }
-.hd-text  { flex: 1; font-size: 13px; font-weight: 700; color: var(--dark); font-family: var(--font-body); }
-.hd-cost  { font-size: 13px; font-weight: 700; color: var(--gold); }
+
 /* Responsive */
 @media (max-width: 768px) {
   .product-layout { grid-template-columns: 1fr; gap: 28px; }
   .image-col { position: static; }
   .related-grid { grid-template-columns: repeat(2, 1fr); }
   .prod-title { font-size: 22px; }
+  .sk-layout { grid-template-columns: 1fr; }
 }
 </style>

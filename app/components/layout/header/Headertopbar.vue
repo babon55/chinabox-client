@@ -2,7 +2,9 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { locale, t } = useI18n()
+const { locale } = useI18n()
+
+const emit = defineEmits<{ (e: 'update:current-lang', lang: 'tk' | 'ru'): void }>()
 
 const langs = [
   { code: 'tk' as const, flag: '🇹🇲', label: 'TK' },
@@ -10,23 +12,25 @@ const langs = [
 ]
 
 const currentLang = computed(() => locale.value)
+
+function changeLang(code: 'tk' | 'ru') {
+  emit('update:current-lang', code)
+}
 </script>
 
 <template>
   <div class="top-bar">
     <div class="top-bar-inner">
-      <span class="top-msg">
-        ✈ {{ $t('header.delivery') }}
-      </span>
+      <span class="top-msg">✈ {{ $t('header.delivery') }}</span>
       <div class="top-right">
         <div class="lang-switcher">
           <button
-            v-for="lang in langs" :key="lang.code"
+            v-for="lang in langs"
+            :key="lang.code"
             :class="['lang-btn', { active: currentLang === lang.code }]"
-            @click="locale = lang.code"
+            @click="changeLang(lang.code)"
           >{{ lang.flag }} {{ lang.label }}</button>
         </div>
-        <NuxtLink v-if="false" to="/admin" class="admin-link">{{ $t('admin.dashboard') }}</NuxtLink>
       </div>
     </div>
   </div>
@@ -38,12 +42,9 @@ const currentLang = computed(() => locale.value)
 .top-msg { letter-spacing: 0.02em; }
 .top-right { display: flex; align-items: center; gap: 16px; }
 .lang-switcher { display: flex; background: rgba(255,255,255,0.08); border-radius: 20px; padding: 2px; gap: 2px; }
-.lang-btn { background: transparent; border: none; color: rgba(255,255,255,0.6); padding: 3px 10px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; letter-spacing: 0.03em; }
+.lang-btn { background: transparent; border: none; color: rgba(255,255,255,0.6); padding: 3px 10px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; letter-spacing: 0.03em; font-family: 'Plus Jakarta Sans', sans-serif; }
 .lang-btn.active { background: #E8A020; color: #0F1117; }
-.admin-link { color: #F5C05A; text-decoration: none; font-size: 11px; font-weight: 600; }
-.admin-link:hover { color: white; }
 
-/* Hide message on very small screens */
 @media (max-width: 480px) {
   .top-msg { display: none; }
   .top-bar-inner { justify-content: flex-end; }

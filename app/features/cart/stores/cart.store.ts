@@ -84,10 +84,15 @@ export const useCartStore = defineStore('cart', () => {
   const totalItems = computed(() => items.value.reduce((sum, i) => sum + i.quantity, 0))
   const subtotal   = computed(() => items.value.reduce((sum, i) => sum + i.price * i.quantity, 0))
 
+  // Replace deliveryCost computed:
+  const totalWeightKg = computed(() =>
+    items.value.reduce((sum, i) => sum + ((i.weightG ?? 0) * i.quantity), 0) / 1000
+  )
+
   const deliveryCost = computed(() =>
-    subtotal.value > 0
-      ? (deliveryType.value === 'fast' ? FAST_RATE : SIMPLE_RATE) + (homeDelivery.value ? 1 : 0)
-      : 0
+    items.value.length === 0 ? 0 :
+    totalWeightKg.value * (deliveryType.value === 'fast' ? FAST_RATE : SIMPLE_RATE)
+    + (homeDelivery.value ? 1 : 0)
   )
 
   const total = computed(() => subtotal.value + deliveryCost.value)
@@ -99,7 +104,7 @@ export const useCartStore = defineStore('cart', () => {
     }
     const key = optionsKey(item.options)
     const existing = items.value.find(
-      i => i.id === item.id && optionsKey((i as any).options) === key
+      i => i.id === item.id && optionsKey(i.options ?? {}) === key
     )
     if (existing) {
       existing.quantity = Math.min(existing.quantity + item.quantity, 99)
@@ -113,7 +118,7 @@ export const useCartStore = defineStore('cart', () => {
     if (qty < 1) return
     const key  = optionsKey(options)
     const item = items.value.find(
-      i => i.id === id && optionsKey((i as any).options) === key
+      i => i.id === id && optionsKey(i.options ?? {}) === key
     )
     if (item) { item.quantity = qty; _save() }
   }
@@ -132,7 +137,7 @@ export const useCartStore = defineStore('cart', () => {
   function removeItem(id: string, options?: SelectedOptions) {
     const key   = optionsKey(options)
     items.value = items.value.filter(
-      i => !(i.id === id && optionsKey((i as any).options) === key)
+      i => !(i.id === id && optionsKey(i.options ?? {}) === key)
     )
     _save()
   }
@@ -162,7 +167,7 @@ export const useCartStore = defineStore('cart', () => {
       deliveryType: deliveryType.value,
       homeDelivery: homeDelivery.value,
       lines: items.value.map(i => {
-        const opts      = (i as any).options
+        const opts      = i.options
         const plainOpts = opts && typeof opts === 'object'
           ? JSON.parse(JSON.stringify(opts))
           : (opts ?? {})

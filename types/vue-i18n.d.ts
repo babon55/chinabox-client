@@ -362,5 +362,12 @@ declare module 'vue-i18n' {
       analytics: string;
       logout: string;
     };
-  };
+  }
 }
+declare module 'nuxt/schema' {
+  interface PublicRuntimeConfig {
+    apiBase: string
+  }
+}
+
+export {}

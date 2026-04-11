@@ -29,7 +29,7 @@ watch(() => route.query.search, (val) => {
 })
 
 // ── Fetch ─────────────────────────────────────────────────────────────────────
-const { data, pending, refresh } = await useAsyncData(
+const { data, pending, refresh } = useAsyncData(
   'products-list',
   () => $fetch<{ items: Product[]; total: number; pages: number }>(`${API}/products`, {
     params: { search: search.value || undefined, page: page.value, limit: 12 },
@@ -38,7 +38,7 @@ const { data, pending, refresh } = await useAsyncData(
 )
 
 interface Category { id: string; nameTk: string; nameRu: string }
-const { data: categories } = await useAsyncData(
+const { data: categories } = useAsyncData(
   'prod-cats',
   () => $fetch<Category[]>(`${API}/products/categories/all`)
 )
@@ -77,16 +77,18 @@ function handleCartClick(p: Product) {
 }
 
 function doAddToCart(p: Product, options: SelectedOptions) {
-  cartStore.addItem({
-    id:       p.id,
-    name:     { tk: p.nameTk, ru: p.nameRu },
-    image:    p.imageUrls?.[0] ?? p.imageUrl ?? p.image,
-    price:    Number(p.price) * (1 + (p.markup ?? 50) / 100),
-    quantity: 1,
-    seller:   'SilkShop',
-    inStock:  p.stock > 0,
-    options:  Object.keys(options).length ? { ...options } : undefined,
-  })
+ cartStore.addItem({
+  id:      p.id,
+  nameTk:  p.nameTk,
+  nameRu:  p.nameRu,
+  image:   p.imageUrls?.[0] ?? p.imageUrl ?? p.image ?? '',
+  price:   Number(p.price) * (1 + (p.markup ?? 50) / 100),
+  quantity: 1,
+  seller:  'SilkShop',
+  inStock: p.stock > 0,
+  weightG: p.weightG ?? null,
+  options: Object.keys(options).length ? { ...options } : undefined,
+})
   addedId.value = p.id
   setTimeout(() => { addedId.value = null }, 1500)
 }

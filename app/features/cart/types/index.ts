@@ -3,13 +3,15 @@ export type DeliveryType = 'simple' | 'fast'
 
 export interface CartItem {
   id:              string
-  name:            Record<Lang, string>
+  nameTk:          string
+  nameRu:          string
   image:           string
   price:           number
   oldPrice?:       number
   quantity:        number
   color?:          string
   size?:           string
+   weightG?:        number | null
   seller:          string
   inStock:         boolean
   options?:        Record<string, string>

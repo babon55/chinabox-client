@@ -21,6 +21,7 @@ useHead({
 </script>
 
 <template>
+  <div>
   <div class="cart-page">
     <!-- Page header -->
     <div class="page-header">
@@ -118,6 +119,7 @@ useHead({
       </div>
     </div>
   </Transition>
+  </div>
 </template>
 
 <style scoped>
