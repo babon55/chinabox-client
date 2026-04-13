@@ -10,6 +10,11 @@
 import { useShortcut } from "vue-shortcut-manager";
 useShortcut('shift+u', () => alert('hello'))
 useShortcut('b o', () => alert('b o'))
+
+const signinStore = useSigninStore()
+onMounted(() => {
+  signinStore.restore()
+})
 </script>
 
 <style>
