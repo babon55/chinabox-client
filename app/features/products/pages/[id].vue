@@ -112,6 +112,9 @@ function addToCart() {
   if (!product.value) return
   if (hasOptions.value && optionsSelectorRef.value && !optionsSelectorRef.value.validate()) return
 
+  cartStore.setDeliveryType(delivery.value)
+  cartStore.setHomeDelivery(homeDelivery.value)
+
   cartStore.addItem({
     id:       product.value.id,
     nameTk:  product.value.nameTk,

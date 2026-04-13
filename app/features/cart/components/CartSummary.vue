@@ -39,38 +39,6 @@ async function handleCheckout() {
   <div class="summary-card">
     <h2 class="summary-title">{{ t.orderSummary }}</h2>
 
-    <!-- Delivery type -->
-    <div class="delivery-block">
-      <div class="delivery-label">{{ lang === 'tk' ? 'Eltip beriş usuly' : 'Способ доставки' }}</div>
-      <div class="delivery-opts">
-        <label :class="['d-opt', { active: store.deliveryType === 'simple' }]">
-          <input type="radio" :checked="store.deliveryType === 'simple'" @change="store.setDeliveryType('simple')" />
-          <div class="d-opt-body">
-            <span class="d-opt-name">🚚 {{ lang === 'tk' ? 'Adaty (15–30 gün)' : 'Обычная (15–30 дней)' }}</span>
-            <span class="d-opt-price">${{ (7).toFixed(2) }}</span>
-          </div>
-        </label>
-        <label :class="['d-opt', { active: store.deliveryType === 'fast' }]">
-          <input type="radio" :checked="store.deliveryType === 'fast'" @change="store.setDeliveryType('fast')" />
-          <div class="d-opt-body">
-            <span class="d-opt-name">⚡ {{ lang === 'tk' ? 'Tiz (7–15 gün)' : 'Быстрая (7–15 дней)' }}</span>
-            <span class="d-opt-price">${{ (11).toFixed(2) }}</span>
-          </div>
-        </label>
-      </div>
-
-      <!-- Home delivery -->
-      <label class="home-delivery">
-        <input
-          type="checkbox"
-          :checked="store.homeDelivery"
-          @change="store.setHomeDelivery(($event.target as HTMLInputElement).checked)"
-        />
-        <span class="d-opt-name">🏠 {{ lang === 'tk' ? 'Öýe eltip bermek' : 'Доставка домой' }}</span>
-        <span class="d-opt-price">+$1.00</span>
-      </label>
-    </div>
-
     <!-- Price breakdown -->
     <div class="summary-rows">
       <div class="summary-row total"> 

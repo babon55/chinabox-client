@@ -1,5 +1,5 @@
 <template>
-  <UApp>         <!-- ← move UApp outside -->
+  <UApp>
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
@@ -13,7 +13,6 @@ useShortcut('b o', () => alert('b o'))
 </script>
 
 <style>
-
 *, *::before, *::after {
   margin: 0;
   padding: 0;
@@ -25,6 +24,13 @@ body {
   color: var(--dark, #0F1117);
   background: var(--surface, #F9FAFB);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Push page content above fixed bottom nav on mobile */
+@media (max-width: 768px) {
+  body {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 .page-enter-active,
