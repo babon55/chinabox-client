@@ -1,26 +1,40 @@
-// @/types.ts
-
-export type Lang = 'tk' | 'ru'
-
+export type Lang        = 'tk' | 'ru'
 export type OrderStatus = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'
+export type DeliveryType = 'simple' | 'fast'
 
-export interface OrderLine {
-  productId: string
-  name:      { tk: string; ru: string }
-  image:     string
-  qty:       number
-  unitPrice: number
+export interface OrderProduct {
+  id:          string
+  nameTk:      string
+  nameRu:      string
+  imageUrl?:   string
+  image?:      string
+  category?: {
+    nameTk: string
+    nameRu: string
+  }
 }
 
-export interface OrderItem {
-  id:       string
-  customer: string
-  email:    string
-  phone:    string
-  address:  string
-  lines:    OrderLine[]
-  total:    number
-  status:   OrderStatus
-  date:     string
-  note?:    string
+export interface OrderLine {
+  id:        string
+  qty:       number
+  unitPrice: number | string
+  options?:  Record<string, string>
+  product?:  OrderProduct
+}
+
+export interface Order {
+  id:           string
+  status:       OrderStatus
+  deliveryType: DeliveryType
+  homeDelivery: boolean
+  total:        number | string
+  note?:        string
+  createdAt:    string
+  lines:        OrderLine[]
+}
+
+export interface OrderStats {
+  label: string
+  value: number | string
+  icon:  string
 }

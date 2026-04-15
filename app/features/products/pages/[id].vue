@@ -7,55 +7,51 @@ definePageMeta({ layout: 'default' })
 import { useWishlistStore }      from '~/features/wishlist/stores/wishlist.store'
 import ProductComments            from '../components/ProductComments.vue'
 import ProductOptionsSelector     from '../components/ProductOptionsSelector.vue'
-import type { Product, SelectedOptions } from '../types/product'
+import ProductDescription         from '../components/ProductDescription.vue'
+import { useProductStore }        from '../stores/product.store'
+import type { SelectedOptions }   from '../types/index'
 
 const { locale } = useI18n()
-const lang       = computed(() => locale.value)
-const cartStore  = useCartStore()
-const wishlist   = useWishlistStore()
-const homeDelivery = ref(false)
+const lang        = computed(() => locale.value)
+const cartStore   = useCartStore()
+const wishlist    = useWishlistStore()
+const productStore = useProductStore()
 
-// ── Route / API ───────────────────────────────────────────────────────────────
-const route  = useRoute()
-const config = useRuntimeConfig()
-const API    = config.public.apiBase
-const id = computed(() => route.params.id as string)
+// ── Route ─────────────────────────────────────────────────────────────────────
+const route = useRoute()
+const id    = computed(() => route.params.id as string)
 
-const { data: product, pending: productPending, error } = useAsyncData(
-  `product-${id.value}`,
-  () => $fetch<Product>(`${API}/products/${id.value}`),
-  { watch: [id] }
-)
+// ── Load product + related ────────────────────────────────────────────────────
+await productStore.fetchProduct(id.value)
 
-const { data: relatedData } = useAsyncData(
-  `related-${id.value}`,
-  async () => {
-    if (!product.value) return { items: [] as Product[] }
-    const res = await $fetch<{ items: Product[] }>(`${API}/products`, { params: { limit: 8 } })
-    return {
-      items: res.items
-        .filter(p => p.category?.id === product.value!.category?.id && p.id !== product.value!.id)
-        .slice(0, 4)
-    }
-  },
-  { watch: [id, product] }
-)
-const related = computed(() => relatedData.value?.items ?? [])
+// Once the product is loaded, kick off related in the background (non-blocking)
+if (productStore.currentProduct) {
+  productStore.fetchRelated(productStore.currentProduct.categoryId, id.value)
+}
+
+// Re-fetch when navigating between product pages (e.g. from related cards)
+watch(id, async (newId) => {
+  await productStore.fetchProduct(newId)
+  if (productStore.currentProduct) {
+    productStore.fetchRelated(productStore.currentProduct.categoryId, newId)
+  }
+})
+
+// Convenience alias
+const product = computed(() => productStore.currentProduct)
+const related = computed(() => productStore.relatedItems)
 
 // ── Gallery ───────────────────────────────────────────────────────────────────
 const allImages = computed(() => {
   if (!product.value) return []
   return product.value.imageUrls?.length
     ? product.value.imageUrls
-    : product.value.imageUrl
-      ? [product.value.imageUrl]
-      : []
+    : product.value.imageUrl ? [product.value.imageUrl] : []
 })
 const activeIdx    = ref(0)
 const activeImage  = computed(() => allImages.value[activeIdx.value] ?? null)
 const lightboxOpen = ref(false)
 
-// Reset gallery index when product changes
 watch(() => product.value?.id, () => { activeIdx.value = 0 })
 
 function prevImage() { activeIdx.value = (activeIdx.value - 1 + allImages.value.length) % allImages.value.length }
@@ -73,7 +69,7 @@ onMounted(() => {
   })
 })
 
-// Save to recently viewed when product loads
+// Save to recently viewed
 watch(product, (p) => {
   if (!p) return
   const key     = 'silkshop_viewed'
@@ -82,13 +78,14 @@ watch(product, (p) => {
   localStorage.setItem(key, JSON.stringify(updated))
 })
 
-// ── Delivery ──────────────────────────────────────────────────────────────────
+// ── Delivery / pricing ────────────────────────────────────────────────────────
 const FAST_RATE   = 11
 const SIMPLE_RATE = 7
 
-const delivery = ref<'simple' | 'fast'>('simple')
-const qty      = ref(1)
-const added    = ref(false)
+const delivery     = ref<'simple' | 'fast'>('simple')
+const homeDelivery = ref(false)
+const qty          = ref(1)
+const added        = ref(false)
 
 const markup       = computed(() => product.value?.markup ?? 50)
 const clientPrice  = computed(() => Number(product.value?.price ?? 0) * (1 + markup.value / 100))
@@ -104,7 +101,6 @@ const selectedOptions    = ref<SelectedOptions>({})
 const optionsSelectorRef = ref<InstanceType<typeof ProductOptionsSelector> | null>(null)
 const hasOptions         = computed(() => (product.value?.options ?? []).length > 0)
 
-// Reset options when product changes
 watch(() => product.value?.id, () => { selectedOptions.value = {} })
 
 // ── Cart ──────────────────────────────────────────────────────────────────────
@@ -114,11 +110,10 @@ function addToCart() {
 
   cartStore.setDeliveryType(delivery.value)
   cartStore.setHomeDelivery(homeDelivery.value)
-
   cartStore.addItem({
     id:       product.value.id,
-    nameTk:  product.value.nameTk,
-  nameRu:  product.value.nameRu,
+    nameTk:   product.value.nameTk,
+    nameRu:   product.value.nameRu,
     image:    activeImage.value ?? product.value.imageUrl ?? product.value.image,
     price:    clientPrice.value,
     quantity: qty.value,
@@ -132,11 +127,11 @@ function addToCart() {
 }
 
 const addedRelated = ref<string | null>(null)
-function addRelatedToCart(p: Product) {
+function addRelatedToCart(p: typeof related.value[0]) {
   cartStore.addItem({
     id:       p.id,
-     nameTk:  p.nameTk,
-    nameRu:  p.nameRu,
+    nameTk:   p.nameTk,
+    nameRu:   p.nameRu,
     image:    p.imageUrls?.[0] ?? p.imageUrl ?? p.image,
     price:    Number(p.price) * (1 + (p.markup ?? 50) / 100),
     quantity: 1,
@@ -162,277 +157,284 @@ useHead({
 <template>
   <div>
 
-  <!-- ── Skeleton ─────────────────────────────────────────────────────────── -->
-  <div v-if="productPending" class="product-skeleton">
-    <div class="sk-breadcrumb"></div>
-    <div class="sk-layout">
-      <div class="sk-img-col"></div>
-      <div class="sk-info-col">
-        <div class="sk-line short"></div>
-        <div class="sk-line long"></div>
-        <div class="sk-line medium"></div>
-        <div class="sk-line short"></div>
-        <div class="sk-line long"></div>
-        <div class="sk-line medium"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Error ─────────────────────────────────────────────────────────────── -->
-  <div v-else-if="error || !product" class="error-state">
-    <div class="error-icon">😕</div>
-    <h2>{{ lang === 'tk' ? 'Haryt tapylmady' : 'Товар не найден' }}</h2>
-    <p>{{ lang === 'tk' ? 'Haryt mövcüt däl ýa-da pozulypdyr' : 'Товар не существует или был удалён' }}</p>
-    <NuxtLink to="/products" class="error-back">
-      ← {{ lang === 'tk' ? 'Harytlara dolan' : 'Вернуться к товарам' }}
-    </NuxtLink>
-  </div>
-
-  <!-- ── Product page ───────────────────────────────────────────────────────── -->
-  <div v-else class="product-page">
-
-    <!-- Lightbox -->
-    <Teleport to="body">
-      <Transition name="lb">
-        <div v-if="lightboxOpen" class="lightbox" @click.self="lightboxOpen = false">
-          <button class="lb-close" @click="lightboxOpen = false">×</button>
-          <button v-if="allImages.length > 1" class="lb-arrow lb-prev" @click="prevImage">‹</button>
-          <img :src="activeImage!" class="lb-img" />
-          <button v-if="allImages.length > 1" class="lb-arrow lb-next" @click="nextImage">›</button>
-          <div class="lb-counter">{{ activeIdx + 1 }} / {{ allImages.length }}</div>
+    <!-- Skeleton -->
+    <div v-if="productStore.detailPending" class="product-skeleton">
+      <div class="sk-breadcrumb"></div>
+      <div class="sk-layout">
+        <div class="sk-img-col"></div>
+        <div class="sk-info-col">
+          <div class="sk-line short"></div>
+          <div class="sk-line long"></div>
+          <div class="sk-line medium"></div>
+          <div class="sk-line short"></div>
+          <div class="sk-line long"></div>
+          <div class="sk-line medium"></div>
         </div>
-      </Transition>
-    </Teleport>
-
-    <!-- Breadcrumb -->
-    <div class="breadcrumb-bar">
-      <div class="bc-inner">
-        <NuxtLink to="/">{{ $t('footer.home') }}</NuxtLink>
-        <span class="bc-sep">›</span>
-        <NuxtLink to="/products">{{ $t('footer.products') }}</NuxtLink>
-        <span class="bc-sep">›</span>
-        <NuxtLink :to="`/products?category=${product.categoryId}`">
-          {{ locale === 'tk' ? product.category.nameTk : product.category.nameRu }}
-        </NuxtLink>
-        <span class="bc-sep">›</span>
-        <span class="bc-current">{{ locale === 'tk' ? product.nameTk : product.nameRu }}</span>
       </div>
     </div>
 
-    <div class="page-inner">
-      <div class="product-layout">
+    <!-- Error -->
+    <div v-else-if="productStore.detailError || !product" class="error-state">
+      <div class="error-icon">😕</div>
+      <h2>{{ lang === 'tk' ? 'Haryt tapylmady' : 'Товар не найден' }}</h2>
+      <p>{{ lang === 'tk' ? 'Haryt mövcüt däl ýa-da pozulypdyr' : 'Товар не существует или был удалён' }}</p>
+      <NuxtLink to="/products" class="error-back">
+        ← {{ lang === 'tk' ? 'Harytlara dolan' : 'Вернуться к товарам' }}
+      </NuxtLink>
+    </div>
 
-        <!-- ── Image column ───────────────────────────────────────────────── -->
-        <div class="image-col">
+    <!-- Product page -->
+    <div v-else class="product-page">
 
-          <!-- Main image -->
-          <div class="main-image-wrap" @click="allImages.length ? (lightboxOpen = true) : null">
-            <img v-if="activeImage" :src="activeImage" :alt="lang === 'tk' ? product.nameTk : product.nameRu" class="main-img" />
-            <span v-else class="big-emoji">{{ product.image }}</span>
-
-            <div v-if="allImages.length > 1" class="img-count-pill">
-              {{ activeIdx + 1 }} / {{ allImages.length }}
-            </div>
-
-            <div v-if="allImages.length" class="expand-hint">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
-              </svg>
-            </div>
-
-            <button v-if="allImages.length > 1" class="img-nav img-prev" @click.stop="prevImage">‹</button>
-            <button v-if="allImages.length > 1" class="img-nav img-next" @click.stop="nextImage">›</button>
+      <!-- Lightbox -->
+      <Teleport to="body">
+        <Transition name="lb">
+          <div v-if="lightboxOpen" class="lightbox" @click.self="lightboxOpen = false">
+            <button class="lb-close" @click="lightboxOpen = false">×</button>
+            <button v-if="allImages.length > 1" class="lb-arrow lb-prev" @click="prevImage">‹</button>
+            <img :src="activeImage!" class="lb-img" />
+            <button v-if="allImages.length > 1" class="lb-arrow lb-next" @click="nextImage">›</button>
+            <div class="lb-counter">{{ activeIdx + 1 }} / {{ allImages.length }}</div>
           </div>
+        </Transition>
+      </Teleport>
 
-          <!-- Thumbnails -->
-          <div v-if="allImages.length > 1" class="thumbs">
-            <button
-              v-for="(url, idx) in allImages"
-              :key="idx"
-              :class="['thumb', { active: idx === activeIdx }]"
-              @click="activeIdx = idx"
-            >
-              <img :src="url" />
-            </button>
-          </div>
-
-          <!-- Wishlist -->
-          <button
-            class="wishlist-row"
-            @click="wishlist.toggle({
-              id: product.id, nameTk: product.nameTk, nameRu: product.nameRu,
-              image: product.image, imageUrl: product.imageUrls?.[0] ?? product.imageUrl,
-              price: Number(product.price), weightG: product.weightG,
-              stock: product.stock, category: product.category,
-            })"
-          >
-            <svg :fill="wishlist.has(product.id) ? '#EF4444' : 'none'" stroke="#EF4444" stroke-width="2" viewBox="0 0 24 24" width="16" height="16">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
-            {{ wishlist.has(product.id)
-              ? (lang === 'tk' ? 'Halananlardan aýyr' : 'Убрать из избранного')
-              : (lang === 'tk' ? 'Halananlara goş'    : 'Добавить в избранное') }}
-          </button>
-        </div>
-
-        <!-- ── Info column ────────────────────────────────────────────────── -->
-        <div class="info-col">
-
-          <div class="prod-cat">{{ lang === 'tk' ? product.category.nameTk : product.category.nameRu }}</div>
-          <h1 class="prod-title">{{ lang === 'tk' ? product.nameTk : product.nameRu }}</h1>
-
-          <div class="prod-meta">
-            <span :class="['stock-badge', product.stock > 0 ? 'in' : 'out']">
-              {{ product.stock > 0
-                ? (lang === 'tk' ? '✓ Stokda bar'  : '✓ В наличии')
-                : (lang === 'tk' ? 'Stokda ýok'    : 'Нет в наличии') }}
-            </span>
-            <span class="sold-count">{{ product.sold }} {{ lang === 'tk' ? 'gezek satyldy' : 'продано' }}</span>
-          </div>
-
-          <!-- Price box -->
-          <div class="price-box">
-            <div class="price-main">${{ fmt(clientPrice) }}</div>
-            <div class="price-meta">
-              <span class="price-label">{{ lang === 'tk' ? 'Önüm bahasy' : 'Цена товара' }}</span>
-            </div>
-          </div>
-
-          <!-- Options -->
-          <ProductOptionsSelector
-            v-if="hasOptions"
-            ref="optionsSelectorRef"
-            v-model="selectedOptions"
-            :options="product.options"
-            :lang="lang"
-          />
-
-          <!-- Delivery -->
-          <div class="delivery-section">
-            <h3 class="section-label">{{ lang === 'tk' ? 'Eltip beriş' : 'Способ доставки' }}</h3>
-            <div class="delivery-options">
-              <label :class="['d-option', { active: delivery === 'simple' }]">
-                <input type="radio" v-model="delivery" value="simple" />
-                <div class="d-body">
-                  <div class="d-top">
-                    <span>🚚 {{ lang === 'tk' ? 'Adaty (15–30 gün)' : 'Обычная (15–30 дней)' }}</span>
-                    <span class="d-cost">${{ fmt((product.weightG ?? 0) / 1000 * SIMPLE_RATE) }}</span>
-                  </div>
-                </div>
-              </label>
-              <label :class="['d-option', { active: delivery === 'fast' }]">
-                <input type="radio" v-model="delivery" value="fast" />
-                <div class="d-body">
-                  <div class="d-top">
-                    <span>⚡ {{ lang === 'tk' ? 'Tiz (7–15 gün)' : 'Быстрая (7–15 дней)' }}</span>
-                    <span class="d-cost">${{ fmt((product.weightG ?? 0) / 1000 * FAST_RATE) }}</span>
-                  </div>
-                </div>
-              </label>
-            </div>
-            <div class="home-delivery-toggle">
-              <label class="hd-label">
-                <input type="checkbox" v-model="homeDelivery" />
-                <span class="hd-text">🏠 {{ lang === 'tk' ? 'Öýe eltip bermek' : 'Доставка домой' }}</span>
-                <span class="hd-cost">+$1.00</span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Total summary -->
-          <div class="total-box">
-            <div class="total-rows">
-              <div class="total-row">
-                <span>{{ lang === 'tk' ? 'Önüm' : 'Товар' }}</span>
-                <strong>${{ fmt(clientPrice) }}</strong>
-              </div>
-              <div class="total-row">
-                <span>{{ lang === 'tk' ? 'Eltip beriş' : 'Доставка' }}</span>
-                <strong>${{ fmt(deliveryCost) }}</strong>
-              </div>
-            </div>
-            <div class="total-final">
-              <span>{{ lang === 'tk' ? 'Jemi' : 'Итого' }}</span>
-              <strong>${{ fmt(totalPrice) }}</strong>
-            </div>
-          </div>
-
-          <!-- Selected options summary -->
-          <div v-if="hasOptions && Object.keys(selectedOptions).length" class="options-summary">
-            <div v-for="opt in product.options.filter(o => selectedOptions[o.id])" :key="opt.id" class="opt-row">
-              <span class="opt-key">{{ lang === 'tk' ? opt.nameTk : opt.nameRu }}:</span>
-              <span class="opt-val">{{ selectedOptions[opt.id] }}{{ opt.unit ? ' ' + opt.unit : '' }}</span>
-            </div>
-          </div>
-
-          <!-- Add to cart -->
-          <div class="action-row">
-            <div class="qty-ctrl">
-              <button @click="qty = Math.max(1, qty - 1)">−</button>
-              <span>{{ qty }}</span>
-              <button @click="qty = Math.min(product.stock || 99, qty + 1)">+</button>
-            </div>
-            <button :class="['add-btn', { added }]" :disabled="product.stock === 0" @click="addToCart">
-              <span v-if="!added">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16" style="margin-right:6px;vertical-align:middle">
-                  <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                  <line x1="3" y1="6" x2="21" y2="6"/>
-                  <path d="M16 10a4 4 0 0 1-8 0"/>
-                </svg>
-                {{ lang === 'tk' ? 'Sebede Goş' : 'В корзину' }}
-              </span>
-              <span v-else>✓ {{ lang === 'tk' ? 'Goşuldy!' : 'Добавлено!' }}</span>
-            </button>
-          </div>
-
-          <NuxtLink to="/cart" class="go-cart-link">
-            {{ lang === 'tk' ? 'Sebede git →' : 'Перейти в корзину →' }}
+      <!-- Breadcrumb -->
+      <div class="breadcrumb-bar">
+        <div class="bc-inner">
+          <NuxtLink to="/">{{ $t('footer.home') }}</NuxtLink>
+          <span class="bc-sep">›</span>
+          <NuxtLink to="/products">{{ $t('footer.products') }}</NuxtLink>
+          <span class="bc-sep">›</span>
+          <NuxtLink :to="`/products?category=${product.categoryId}`">
+            {{ locale === 'tk' ? product.category.nameTk : product.category.nameRu }}
           </NuxtLink>
+          <span class="bc-sep">›</span>
+          <span class="bc-current">{{ locale === 'tk' ? product.nameTk : product.nameRu }}</span>
         </div>
       </div>
-    </div>
 
-    <!-- Comments -->
-    <ProductComments :product-id="product.id" :lang="lang" />
+      <div class="page-inner">
+        <div class="product-layout">
 
-    <!-- Related products -->
-    <section v-if="related.length" class="related-section">
-      <div class="related-inner">
-        <div class="related-header">
-          <h2 class="related-title">{{ lang === 'tk' ? 'Meňzeş Harytlar' : 'Похожие товары' }}</h2>
-          <NuxtLink :to="`/products?category=${product.categoryId}`" class="see-all">
-            {{ lang === 'tk' ? 'Hemmesini gör →' : 'Смотреть все →' }}
-          </NuxtLink>
-        </div>
-        <div class="related-grid">
-          <div v-for="p in related" :key="p.id" class="rel-card">
-            <NuxtLink :to="`/products/${p.id}`" class="rel-img-wrap">
+          <!-- Image column -->
+          <div class="image-col">
+            <div class="main-image-wrap" @click="allImages.length ? (lightboxOpen = true) : null">
               <img
-                v-if="p.imageUrls?.length || p.imageUrl"
-                :src="p.imageUrls?.[0] ?? p.imageUrl ?? p.image"
-                :alt="lang === 'tk' ? p.nameTk : p.nameRu"
-                class="rel-img"
+                v-if="activeImage"
+                :src="activeImage"
+                :alt="lang === 'tk' ? product.nameTk : product.nameRu"
+                class="main-img"
               />
-              <span v-else class="rel-emoji">{{ p.image }}</span>
-              <span v-if="p.stock === 0" class="rel-out">{{ lang === 'tk' ? 'Ýok' : 'Нет' }}</span>
-              <span v-if="(p.imageUrls?.length ?? 0) > 1" class="rel-img-count">+{{ p.imageUrls!.length - 1 }}</span>
+              <span v-else class="big-emoji">{{ product.image }}</span>
+
+              <div v-if="allImages.length > 1" class="img-count-pill">
+                {{ activeIdx + 1 }} / {{ allImages.length }}
+              </div>
+              <div v-if="allImages.length" class="expand-hint">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                </svg>
+              </div>
+              <button v-if="allImages.length > 1" class="img-nav img-prev" @click.stop="prevImage">‹</button>
+              <button v-if="allImages.length > 1" class="img-nav img-next" @click.stop="nextImage">›</button>
+            </div>
+
+            <div v-if="allImages.length > 1" class="thumbs">
+              <button
+                v-for="(url, idx) in allImages" :key="idx"
+                :class="['thumb', { active: idx === activeIdx }]"
+                @click="activeIdx = idx"
+              >
+                <img :src="url" loading="lazy" />
+              </button>
+            </div>
+
+            <button
+              class="wishlist-row"
+              @click="wishlist.toggle({
+                id: product.id, nameTk: product.nameTk, nameRu: product.nameRu,
+                image: product.image, imageUrl: product.imageUrls?.[0] ?? product.imageUrl,
+                price: Number(product.price), weightG: product.weightG,
+                stock: product.stock, category: product.category,
+              })"
+            >
+              <svg
+                :fill="wishlist.has(product.id) ? '#EF4444' : 'none'"
+                stroke="#EF4444" stroke-width="2"
+                viewBox="0 0 24 24" width="16" height="16"
+              >
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+              {{ wishlist.has(product.id)
+                ? (lang === 'tk' ? 'Halananlardan aýyr' : 'Убрать из избранного')
+                : (lang === 'tk' ? 'Halananlara goş'    : 'Добавить в избранное') }}
+            </button>
+          </div>
+
+          <!-- Info column -->
+          <div class="info-col">
+            <div class="prod-cat">{{ lang === 'tk' ? product.category.nameTk : product.category.nameRu }}</div>
+            <h1 class="prod-title">{{ lang === 'tk' ? product.nameTk : product.nameRu }}</h1>
+
+            <div class="prod-meta">
+              <span :class="['stock-badge', product.stock > 0 ? 'in' : 'out']">
+                {{ product.stock > 0
+                  ? (lang === 'tk' ? '✓ Stokda bar'  : '✓ В наличии')
+                  : (lang === 'tk' ? 'Stokda ýok'    : 'Нет в наличии') }}
+              </span>
+              <span class="sold-count">{{ product.sold }} {{ lang === 'tk' ? 'gezek satyldy' : 'продано' }}</span>
+            </div>
+
+            <div class="price-box">
+              <div class="price-main">${{ fmt(clientPrice) }}</div>
+              <div class="price-meta">
+                <span class="price-label">{{ lang === 'tk' ? 'Önüm bahasy' : 'Цена товара' }}</span>
+              </div>
+            </div>
+
+            <ProductOptionsSelector
+              v-if="hasOptions"
+              ref="optionsSelectorRef"
+              v-model="selectedOptions"
+              :options="product.options"
+              :lang="lang"
+            />
+
+            <ProductDescription
+              :description-tk="product.descriptionTk"
+              :description-ru="product.descriptionRu"
+              :lang="lang"
+            />
+
+            <div class="delivery-section">
+              <h3 class="section-label">{{ lang === 'tk' ? 'Eltip beriş' : 'Способ доставки' }}</h3>
+              <div class="delivery-options">
+                <label :class="['d-option', { active: delivery === 'simple' }]">
+                  <input type="radio" v-model="delivery" value="simple" />
+                  <div class="d-body">
+                    <div class="d-top">
+                      <span>🚚 {{ lang === 'tk' ? 'Adaty (15–30 gün)' : 'Обычная (15–30 дней)' }}</span>
+                      <span class="d-cost">${{ fmt((product.weightG ?? 0) / 1000 * SIMPLE_RATE) }}</span>
+                    </div>
+                  </div>
+                </label>
+                <label :class="['d-option', { active: delivery === 'fast' }]">
+                  <input type="radio" v-model="delivery" value="fast" />
+                  <div class="d-body">
+                    <div class="d-top">
+                      <span>⚡ {{ lang === 'tk' ? 'Tiz (7–15 gün)' : 'Быстрая (7–15 дней)' }}</span>
+                      <span class="d-cost">${{ fmt((product.weightG ?? 0) / 1000 * FAST_RATE) }}</span>
+                    </div>
+                  </div>
+                </label>
+              </div>
+              <div class="home-delivery-toggle">
+                <label class="hd-label">
+                  <input type="checkbox" v-model="homeDelivery" />
+                  <span class="hd-text">🏠 {{ lang === 'tk' ? 'Öýe eltip bermek' : 'Доставка домой' }}</span>
+                  <span class="hd-cost">+$1.00</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="total-box">
+              <div class="total-rows">
+                <div class="total-row">
+                  <span>{{ lang === 'tk' ? 'Önüm' : 'Товар' }}</span>
+                  <strong>${{ fmt(clientPrice) }}</strong>
+                </div>
+                <div class="total-row">
+                  <span>{{ lang === 'tk' ? 'Eltip beriş' : 'Доставка' }}</span>
+                  <strong>${{ fmt(deliveryCost) }}</strong>
+                </div>
+              </div>
+              <div class="total-final">
+                <span>{{ lang === 'tk' ? 'Jemi' : 'Итого' }}</span>
+                <strong>${{ fmt(totalPrice) }}</strong>
+              </div>
+            </div>
+
+            <div v-if="hasOptions && Object.keys(selectedOptions).length" class="options-summary">
+              <div v-for="opt in product.options.filter(o => selectedOptions[o.id])" :key="opt.id" class="opt-row">
+                <span class="opt-key">{{ lang === 'tk' ? opt.nameTk : opt.nameRu }}:</span>
+                <span class="opt-val">{{ selectedOptions[opt.id] }}{{ opt.unit ? ' ' + opt.unit : '' }}</span>
+              </div>
+            </div>
+
+            <div class="action-row">
+              <div class="qty-ctrl">
+                <button @click="qty = Math.max(1, qty - 1)">−</button>
+                <span>{{ qty }}</span>
+                <button @click="qty = Math.min(product.stock || 99, qty + 1)">+</button>
+              </div>
+              <button :class="['add-btn', { added }]" :disabled="product.stock === 0" @click="addToCart">
+                <span v-if="!added">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16" style="margin-right:6px;vertical-align:middle">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                  </svg>
+                  {{ lang === 'tk' ? 'Sebede Goş' : 'В корзину' }}
+                </span>
+                <span v-else>✓ {{ lang === 'tk' ? 'Goşuldy!' : 'Добавлено!' }}</span>
+              </button>
+            </div>
+
+            <NuxtLink to="/cart" class="go-cart-link">
+              {{ lang === 'tk' ? 'Sebede git →' : 'Перейти в корзину →' }}
             </NuxtLink>
-            <div class="rel-body">
-              <div class="rel-cat">{{ lang === 'tk' ? p.category.nameTk : p.category.nameRu }}</div>
-              <NuxtLink :to="`/products/${p.id}`" class="rel-name">{{ lang === 'tk' ? p.nameTk : p.nameRu }}</NuxtLink>
-              <div class="rel-footer">
-                <span class="rel-price">${{ fmt(Number(p.price) * (1 + (p.markup ?? 50) / 100)) }}</span>
-                <button :class="['rel-cart-btn', { added: addedRelated === p.id }]" :disabled="p.stock === 0" @click.prevent="addRelatedToCart(p)">
-                  {{ addedRelated === p.id ? '✓' : '+' }}
-                </button>
+          </div>
+        </div>
+      </div>
+
+      <ProductComments :product-id="product.id" :lang="lang" />
+
+      <!-- Related products -->
+      <section v-if="related.length" class="related-section">
+        <div class="related-inner">
+          <div class="related-header">
+            <h2 class="related-title">{{ lang === 'tk' ? 'Meňzeş Harytlar' : 'Похожие товары' }}</h2>
+            <NuxtLink :to="`/products?category=${product.categoryId}`" class="see-all">
+              {{ lang === 'tk' ? 'Hemmesini gör →' : 'Смотреть все →' }}
+            </NuxtLink>
+          </div>
+          <div class="related-grid">
+            <div v-for="p in related" :key="p.id" class="rel-card">
+              <NuxtLink :to="`/products/${p.id}`" class="rel-img-wrap">
+                <img
+                  v-if="p.imageUrls?.length || p.imageUrl"
+                  :src="p.imageUrls?.[0] ?? p.imageUrl ?? p.image"
+                  :alt="lang === 'tk' ? p.nameTk : p.nameRu"
+                  loading="lazy"
+                  class="rel-img"
+                />
+                <span v-else class="rel-emoji">{{ p.image }}</span>
+                <span v-if="p.stock === 0" class="rel-out">{{ lang === 'tk' ? 'Ýok' : 'Нет' }}</span>
+                <span v-if="(p.imageUrls?.length ?? 0) > 1" class="rel-img-count">+{{ p.imageUrls!.length - 1 }}</span>
+              </NuxtLink>
+              <div class="rel-body">
+                <div class="rel-cat">{{ lang === 'tk' ? p.category.nameTk : p.category.nameRu }}</div>
+                <NuxtLink :to="`/products/${p.id}`" class="rel-name">
+                  {{ lang === 'tk' ? p.nameTk : p.nameRu }}
+                </NuxtLink>
+                <div class="rel-footer">
+                  <span class="rel-price">${{ fmt(Number(p.price) * (1 + (p.markup ?? 50) / 100)) }}</span>
+                  <button
+                    :class="['rel-cart-btn', { added: addedRelated === p.id }]"
+                    :disabled="p.stock === 0"
+                    @click.prevent="addRelatedToCart(p)"
+                  >
+                    {{ addedRelated === p.id ? '✓' : '+' }}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-  </div>
+    </div>
   </div>
 </template>
 

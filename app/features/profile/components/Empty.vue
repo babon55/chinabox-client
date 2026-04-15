@@ -1,16 +1,16 @@
 <script setup lang="ts">
-// Auto-imported as <f-orders-empty />
+// Auto-imported as <f-profile-empty />
 // No import needed — registered automatically by nuxt-feature-imports
 </script>
 
 <template>
-  <div class="orders-empty">
-    <slot>No orders items found.</slot>
+  <div class="profile-empty">
+    <slot>No profile items found.</slot>
   </div>
 </template>
 
 <style scoped>
-.orders-empty {
+.profile-empty {
   padding: 2rem;
   text-align: center;
   color: #6b7280;
