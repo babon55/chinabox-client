@@ -9,12 +9,14 @@ onMounted(() => {
   if (token) {
     // Decode JWT payload to get user info
       const payload = JSON.parse(atob(token.split('.')[1]!))
-      const customer = {
-        id:    payload.sub,    // ← was payload.id
-        name:  payload.name ?? '',
-        email: payload.email,
-        phone: '',
-      }
+        const customer = {
+          id:      payload.sub,
+          name:    payload.name  ?? '',
+          email:   payload.email ?? '',
+          phone:   payload.phone ?? null,
+          address: null,
+          status:  'ACTIVE' as const,
+        }
 
     // Save exactly like your normal login does
     localStorage.setItem('customer_access_token', token)

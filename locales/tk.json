@@ -23,7 +23,9 @@
     "currency": "$",
     "allCategories": "Ähli kategoriýalar",
     "resetFilters": "Süzgüçleri arassala",
-    "free": "Mugt"
+    "free": "Mugt",
+    "saving": "Saklanýar...",
+    "errorTryAgain": "Ýalňyşlyk boldy. Gaýtadan synanyşyň."
   },
   "header": {
     "searchPlaceholder": "Haryt gözle...",
@@ -225,7 +227,7 @@
       "step3": "Biz siziň talabyňyzy gözden geçireris",
       "step4": "Haryt goşulanda size habar bereris",
       "questions": "Soraglaryňyz barmy?",
-      "contactUs": "Bize ýazyň, kömek ederis!"    
+      "contactUs": "Bize ýazyň, kömek ederis!"
     }
   },
   "footer": {
@@ -256,13 +258,29 @@
     "madeWithLove": "Made with ❤️ in Turkmenistan"
   },
   "productComments": {
+    "count": "{total} teswir",
+    "customerReviews": "Müşderi Teswirleri",
+    "loginToComment": "Teswir ýazmak üçin ulgama giriň",
+    "shareOpinion": "Pikiriňizi beýlekilere paýlaşyň",
+    "login": "Giriş Et",
+    "writeReview": "Teswiriňizi ýazyň",
+    "yourRating": "Bahanyňyz:",
+    "yourReview": "Teswiriňiz:",
+    "submit": "✉ Teswir Ugrat",
+    "submitting": "Ugradylýar...",
+    "success": "Teswiriňiz üstünlikli goşuldy!",
+    "none": "Heniz teswir ýok — ilkinji bolup ýazyň!",
+    "delete": "Poz",
+    "ratingRequired": "Baha beriň",
+    "reviewRequired": "Teswir ýazyň",
+    "error": "Ýalňyşlyk ýüze çykdy",
+    "alreadyReviewed": "Siz bu haryt üçin eýýäm teswir ýazdyňyz",
     "noComments": "Şu wagta çenli hiç hili koment ýok.",
     "writeComment": "Koment ýazyň...",
     "post": "Ýazgy goş",
     "posting": "Goşulýar...",
     "anonymous": "Anonim",
     "dateFormat": "d.M.yyyy HH:mm",
-    "loginToComment": "Koment goşmak üçin ulgama giriň",
     "loadMore": "Has kökini ýüklä"
   },
   "productOptions": {
@@ -384,23 +402,34 @@
     "analytics": "Analitika",
     "logout": "Çyş"
   },
-  "productComments": {
-    "count": "{total} teswir",
-    "customerReviews": "Müşderi Teswirleri",
-    "loginToComment": "Teswir ýazmak üçin ulgama giriň",
-    "shareOpinion": "Pikiriňizi beýlekilere paýlaşyň",
-    "login": "Giriş Et",
-    "writeReview": "Teswiriňizi ýazyň",
-    "yourRating": "Bahanyňyz:",
-    "yourReview": "Teswiriňiz:",
-    "submit": "✉ Teswir Ugrat",
-    "submitting": "Ugradylýar...",
-    "success": "Teswiriňiz üstünlikli goşuldy!",
-    "none": "Heniz teswir ýok — ilkinji bolup ýazyň!",
-    "delete": "Poz",
-    "ratingRequired": "Baha beriň",
-    "reviewRequired": "Teswir ýazyň",
-    "error": "Ýalňyşlyk ýüze çykdy",
-    "alreadyReviewed": "Siz bu haryt üçin eýýäm teswir ýazdyňyz"
+  "profile": {
+    "personalInfo": "Şahsy maglumat",
+    "fullName": "Doly ady",
+    "fullNamePlaceholder": "Adyňyz",
+    "email": "E-poçta",
+    "phone": "Telefon",
+    "address": "Eltip beriş salgysy",
+    "addressPlaceholder": "Köçe, şäher...",
+    "saveChanges": "Üýtgeşmeleri sakla",
+    "updateSuccess": "Profil üstünlikli täzelendi!",
+    "emailInUse": "Bu e-poçta eýýäm ulanylýar.",
+    "changePassword": "Paroly üýtget",
+    "newPassword": "Täze parol",
+    "passwordPlaceholder": "Iň az 6 simwol",
+    "confirmPassword": "Paroly tassykla",
+    "confirmPasswordPlaceholder": "Paroly gaýtala",
+    "updatePassword": "Paroly täzele",
+    "passwordMismatch": "Parollar gabat gelmeýär.",
+    "passwordSuccess": "Parol üstünlikli üýtgedildi!"
+  },
+  "wishlist": {
+    "title":          "Halanlarym",
+    "items":          "haryt",
+    "clearAll":       "Hemmesini aýyr",
+    "remove":         "Aýyr",
+    "addToCart":      "Sebede goş",
+    "browseProducts": "Harytlara git",
+    "emptyTitle":     "Halanlar sanaw boş",
+    "emptyDesc":      "Harytlary görüp ýürek nyşanyna basyň"
   }
 }

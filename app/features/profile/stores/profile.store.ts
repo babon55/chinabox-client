@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { defineStore }  from 'pinia'
+import { ref }          from 'vue'
 import type { CustomerProfile, UpdateProfilePayload, UpdatePasswordPayload } from '../types'
 import { useSigninStore } from '~/features/signin/stores/signin.store'
 
@@ -9,66 +9,66 @@ export const useProfileStore = defineStore('profile', () => {
   const signinStore = useSigninStore()
 
   // ── State ──────────────────────────────────────────────────────────────────
-  const profile  = ref<CustomerProfile | null>(null)
-  const loading  = ref(false)
-  const error    = ref<string | null>(null)
+  const profile = ref<CustomerProfile | null>(null)
+  const loading = ref(false)
+  const error   = ref<string | null>(null)
 
   // ── Helpers ────────────────────────────────────────────────────────────────
-  function getToken (): string {
-    return signinStore.accessToken ?? localStorage.getItem('customer_access_token') ?? ''
-  }
-
-  function authHeaders () {
-    return {
-      'Content-Type': 'application/json',
-      Authorization:  `Bearer ${getToken()}`,
-    }
+ function getToken(): string {
+  const token = signinStore.accessToken ?? localStorage.getItem('customer_access_token') ?? ''
+  console.log('token:', token) // ← add this temporarily
+  return token
+}
+  function authHeaders(): Record<string, string> {
+    return { Authorization: `Bearer ${getToken()}` }
   }
 
   // ── Actions ────────────────────────────────────────────────────────────────
-  async function fetchProfile (): Promise<void> {
+  async function fetchProfile(): Promise<void> {
     loading.value = true
     error.value   = null
     try {
-      const res = await fetch(`${API}/customer-auth/me`, {
+      profile.value = await $fetch<CustomerProfile>(`${API}/customer/me`, {
         headers: authHeaders(),
       })
-      if (!res.ok) throw new Error('Failed to load profile')
-      profile.value = await res.json()
     } catch (e: any) {
-      error.value = e.message ?? 'Unknown error'
+      error.value = e?.data?.message ?? e?.message ?? 'Failed to load profile'
     } finally {
       loading.value = false
     }
   }
 
-  async function updateProfile (payload: UpdateProfilePayload): Promise<{ ok: boolean; conflict?: boolean }> {
-    const res = await fetch(`${API}/customer-auth/me`, {
-      method:  'PATCH',
-      headers: authHeaders(),
-      body:    JSON.stringify(payload),
-    })
+  async function updateProfile(payload: UpdateProfilePayload): Promise<{ ok: boolean; conflict?: boolean }> {
+    try {
+      const updated = await $fetch<CustomerProfile>(`${API}/customer/me`, {
+        method:  'PATCH',
+        headers: authHeaders(),
+        body:    payload,
+      })
+      profile.value = updated
 
-    if (res.status === 409) return { ok: false, conflict: true }
-    if (!res.ok)             return { ok: false }
+      // Keep localStorage user object in sync
+      const stored = JSON.parse(localStorage.getItem('customer_user') ?? '{}')
+      localStorage.setItem('customer_user', JSON.stringify({ ...stored, ...updated }))
 
-    const updated: CustomerProfile = await res.json()
-    profile.value = updated
-
-    // Keep localStorage user object in sync
-    const stored = JSON.parse(localStorage.getItem('customer_user') ?? '{}')
-    localStorage.setItem('customer_user', JSON.stringify({ ...stored, ...updated }))
-
-    return { ok: true }
+      return { ok: true }
+    } catch (e: any) {
+      if (e?.response?.status === 409 || e?.status === 409) return { ok: false, conflict: true }
+      return { ok: false }
+    }
   }
 
-  async function updatePassword (payload: UpdatePasswordPayload): Promise<{ ok: boolean }> {
-    const res = await fetch(`${API}/customer-auth/me`, {
-      method:  'PATCH',
-      headers: authHeaders(),
-      body:    JSON.stringify(payload),
-    })
-    return { ok: res.ok }
+  async function updatePassword(payload: UpdatePasswordPayload): Promise<{ ok: boolean }> {
+    try {
+      await $fetch(`${API}/customer/me`, {
+        method:  'PATCH',
+        headers: authHeaders(),
+        body:    payload,
+      })
+      return { ok: true }
+    } catch {
+      return { ok: false }
+    }
   }
 
   return {

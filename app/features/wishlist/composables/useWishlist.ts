@@ -1,24 +1,44 @@
-import type { Wishlist } from '../types';
+import { ref }                              from 'vue'
+import { useWishlistStore, type WishlistItem } from '../stores/wishlist.store'
 
-// Auto-imported globally — no import needed in .vue files
-export const useWishlist = () => {
-  const items = ref<Wishlist[]>([]);
-  const loading = ref(false);
-  const error = ref<string | null>(null);
+export function useWishlist() {
+  const store       = useWishlistStore()
+  const cartStore   = useCartStore()
+  const addedToCart = ref<string | null>(null)
 
-  const fetchItems = async () => {
-    loading.value = true;
-    error.value = null;
+  // ── Helpers ─────────────────────────────────────────────────────────────────
+  function fmt(n: number): string {
+    return Number(n).toFixed(2)
+  }
 
-    try {
-      // TODO: Implement fetch logic
-      // items.value = await $fetch('/api/wishlist');
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'An error occurred';
-    } finally {
-      loading.value = false;
-    }
-  };
+  function fmtDate(d: string, locale: string): string {
+    return new Date(d).toLocaleDateString(
+      locale === 'tk' ? 'tk-TM' : 'ru-RU',
+      { day: '2-digit', month: 'short' }
+    )
+  }
 
-  return { items, loading, error, fetchItems };
-};
+  // ── Cart action ─────────────────────────────────────────────────────────────
+  /**
+   * Moves a wishlist item into the cart and removes it from the wishlist.
+   * Uses the correct CartItem shape (nameTk/nameRu, not name: { tk, ru }).
+   */
+  function moveToCart(item: WishlistItem): void {
+    cartStore.addItem({
+      id:       item.id,
+      nameTk:   item.nameTk,
+      nameRu:   item.nameRu,
+      image:    item.imageUrl ?? item.image,
+      price:    item.price,
+      weightG:  item.weightG ?? null,
+      quantity: 1,
+      seller:   'SilkShop',
+      inStock:  item.stock > 0,
+    })
+    store.remove(item.id)
+    addedToCart.value = item.id
+    setTimeout(() => { addedToCart.value = null }, 2000)
+  }
+
+  return { fmt, fmtDate, moveToCart, addedToCart }
+}

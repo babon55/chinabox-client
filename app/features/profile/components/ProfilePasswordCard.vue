@@ -1,15 +1,32 @@
 <template>
+    <!-- ADD THIS FIELD FIRST -->
+  <div class="field">
+    <label>{{ $t('profile.currentPassword') }}</label>
+    <div class="input-eye">
+      <input
+        v-model="passwords.current"
+        :type="showCurrent ? 'text' : 'password'"
+        :placeholder="$t('profile.passwordPlaceholder')"
+        required
+        minlength="6"
+      />
+      <button type="button" class="eye-btn" @click="showCurrent = !showCurrent">
+        <IconEyeOff v-if="showCurrent" />
+        <IconEye v-else />
+      </button>
+    </div>
+  </div>
   <section class="card">
-    <h2 class="card-title">Change Password</h2>
+    <h2 class="card-title">{{ $t('profile.changePassword') }}</h2>
 
     <form @submit.prevent="handleSubmit">
       <div class="field">
-        <label>New Password</label>
+        <label>{{ $t('profile.newPassword') }}</label>
         <div class="input-eye">
           <input
             v-model="passwords.new"
             :type="showNew ? 'text' : 'password'"
-            placeholder="Min 6 characters"
+            :placeholder="$t('profile.passwordPlaceholder')"
             required
             minlength="6"
           />
@@ -21,12 +38,12 @@
       </div>
 
       <div class="field">
-        <label>Confirm Password</label>
+        <label>{{ $t('profile.confirmPassword') }}</label>
         <div class="input-eye">
           <input
             v-model="passwords.confirm"
             :type="showConfirm ? 'text' : 'password'"
-            placeholder="Repeat password"
+            :placeholder="$t('profile.confirmPasswordPlaceholder')"
             required
             minlength="6"
           />
@@ -38,7 +55,7 @@
       </div>
 
       <button class="btn-primary" :disabled="saving">
-        {{ saving ? 'Updating…' : 'Update Password' }}
+        {{ saving ? $t('common.saving') : $t('profile.updatePassword') }}
       </button>
 
       <p v-if="feedback" :class="['msg', feedback.type]">{{ feedback.message }}</p>
@@ -48,10 +65,12 @@
 
 <script setup lang="ts">
 import { reactive, ref }      from 'vue'
+import { useI18n }            from 'vue-i18n'
 import { useProfileStore }    from '../stores/profile.store'
 import { useProfileFeedback } from '../composables/useProfileFeedback'
+const showCurrent = ref(false)
 
-/* ── Inline icon components (no extra dep) ───────────────────────────────── */
+// ── Inline SVG icons (no extra dependency) ─────────────────────────────────
 const IconEye = {
   template: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" stroke-width="2" width="18" height="18">
@@ -69,28 +88,32 @@ const IconEyeOff = {
   </svg>`,
 }
 
+const { t }               = useI18n()
 const profileStore        = useProfileStore()
 const { feedback, flash } = useProfileFeedback()
 const saving              = ref(false)
 const showNew             = ref(false)
 const showConfirm         = ref(false)
-const passwords           = reactive({ new: '', confirm: '' })
+const passwords = reactive({ current: '', new: '', confirm: '' })
 
-async function handleSubmit () {
+async function handleSubmit() {
   if (passwords.new !== passwords.confirm) {
-    flash('Passwords do not match.', 'error')
+    flash(t('profile.passwordMismatch'), 'error')
     return
   }
-
   saving.value = true
   try {
-    const result = await profileStore.updatePassword({ password: passwords.new })
+    const result = await profileStore.updatePassword({
+      currentPassword: passwords.current,
+      newPassword:     passwords.new,
+    })
     if (result.ok) {
+      passwords.current = ''
       passwords.new     = ''
       passwords.confirm = ''
-      flash('Password changed successfully!', 'success')
+      flash(t('profile.passwordSuccess'), 'success')
     } else {
-      flash('Something went wrong. Try again.', 'error')
+      flash(t('common.errorTryAgain'), 'error')
     }
   } finally {
     saving.value = false
@@ -107,82 +130,37 @@ async function handleSubmit () {
 }
 .card-title {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 1.5rem;
+  font-size: 1.05rem; font-weight: 600; color: #fff; margin-bottom: 1.5rem;
 }
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 1.1rem;
-}
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 1.1rem; }
 .field label {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 0.8rem; font-weight: 500; color: rgba(255,255,255,0.5);
+  text-transform: uppercase; letter-spacing: 0.05em;
 }
 .field input {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  padding: 0.65rem 0.9rem;
-  color: #fff;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.95rem;
-  transition: border-color 0.2s;
-  width: 100%;
-  box-sizing: border-box;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px; padding: 0.65rem 0.9rem; color: #fff;
+  font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem;
+  transition: border-color 0.2s; width: 100%; box-sizing: border-box;
 }
-.field input:focus {
-  outline: none;
-  border-color: #e8a020;
-}
-.input-eye {
-  position: relative;
-}
-.input-eye input {
-  padding-right: 2.8rem;
-}
+.field input:focus { outline: none; border-color: #e8a020; }
+.input-eye { position: relative; }
+.input-eye input { padding-right: 2.8rem; }
 .eye-btn {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: rgba(255, 255, 255, 0.4);
-  display: flex;
-  align-items: center;
-  padding: 0;
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: rgba(255,255,255,0.4); display: flex; align-items: center; padding: 0;
 }
 .eye-btn:hover { color: #e8a020; }
 .btn-primary {
-  width: 100%;
-  padding: 0.75rem;
-  background: #e8a020;
-  color: #0f1117;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-weight: 700;
-  font-size: 0.95rem;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: opacity 0.2s, transform 0.15s;
-  margin-top: 0.5rem;
+  width: 100%; padding: 0.75rem; background: #e8a020; color: #0f1117;
+  font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 0.95rem;
+  border: none; border-radius: 10px; cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s; margin-top: 0.5rem;
 }
 .btn-primary:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-.msg {
-  margin-top: 0.75rem;
-  font-size: 0.88rem;
-  font-weight: 500;
-  text-align: center;
-}
+.msg { margin-top: 0.75rem; font-size: 0.88rem; font-weight: 500; text-align: center; }
 .msg.success { color: #4ade80; }
 .msg.error   { color: #f87171; }
 </style>

@@ -2,19 +2,19 @@
 import { useWishlistStore, type WishlistItem } from '../stores/wishlist.store'
 
 const props = defineProps<{
-  item: Omit<WishlistItem, 'addedAt'>
-  size?: 'sm' | 'md'
-}>()
+  item: Omit<WishlistItem, 'addedAt'>;
+  size?: 'sm' | 'md';
+}>();
 
-const store   = useWishlistStore()
-const liked   = computed(() => store.has(props.item.id))
-const popping = ref(false)
+const store   = useWishlistStore();
+const liked   = computed(() => store.has(props.item.id));
+const popping = ref(false);
 
 function toggle() {
-  store.toggle(props.item)
-  if (!liked.value) return
-  popping.value = true
-  setTimeout(() => popping.value = false, 400)
+  store.toggle(props.item);
+  if (!liked.value) return;
+  popping.value = true;
+  setTimeout(() => popping.value = false, 400);
 }
 </script>
 

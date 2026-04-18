@@ -3,12 +3,13 @@ import { defineStore } from 'pinia'
 const API = 'http://localhost:3001/api/v1'
 
 interface CustomerUser {
-  id:    string
-  name:  string
-  email: string
-  phone: string
+  id:      string
+  name:    string
+  email:   string
+  phone:   string | null
+  address: string | null  // ← add
+  status:  'ACTIVE' | 'BLOCKED'  // ← add
 }
-
 export const useSigninStore = defineStore('signin', () => {
   const user         = ref<CustomerUser | null>(null)
   const accessToken  = ref<string | null>(null)
@@ -20,38 +21,47 @@ export const useSigninStore = defineStore('signin', () => {
   // ── Restore session on app load ───────────────────────────────────────────
   // If accessToken is expired, try refreshing silently before giving up
   async function restore() {
-    if (!import.meta.client) return
+  if (!import.meta.client) return
 
-    const token        = localStorage.getItem('customer_access_token')
-    const refreshToken = localStorage.getItem('customer_refresh_token')
-    const userData     = localStorage.getItem('customer_user')
+  const token        = localStorage.getItem('customer_access_token')
+  const refreshToken = localStorage.getItem('customer_refresh_token')
+  const userData     = localStorage.getItem('customer_user')
 
-    if (!userData) return // no session at all
+  if (!userData) return
 
-    // Try to load existing token first
-    if (token) {
-      accessToken.value = token
-      try { user.value = JSON.parse(userData) } catch { clearSession(); return }
-      return
-    }
-
-    // Access token missing but refresh token exists — silently refresh
-    if (refreshToken) {
-      try {
-        const data = await $fetch<{ accessToken: string; refreshToken: string }>(
-          `${API}/customer/refresh`,
-          { method: 'POST', body: { refreshToken } }
-        )
-        localStorage.setItem('customer_access_token',  data.accessToken)
-        localStorage.setItem('customer_refresh_token', data.refreshToken)
-        accessToken.value = data.accessToken
-        try { user.value = JSON.parse(userData) } catch { clearSession(); return }
-      } catch {
-        // Refresh token also expired — clear everything
-        clearSession()
-      }
-    }
+  // ── Check if access token is still valid ──────────────────────────────
+  const isExpired = (t: string) => {
+    try {
+     const { exp } = JSON.parse((globalThis as any).atob(t.split('.')[1]))
+      return Date.now() / 1000 >= exp
+    } catch { return true }
   }
+
+  if (token && !isExpired(token)) {
+    // Token is still valid — use it as-is
+    accessToken.value = token
+    try { user.value = JSON.parse(userData) } catch { clearSession(); return }
+    return
+  }
+
+  // Token missing or expired — try refresh
+  if (refreshToken) {
+    try {
+      const data = await $fetch<{ accessToken: string; refreshToken: string }>(
+        `${API}/customer/refresh`,
+        { method: 'POST', body: { refreshToken } }
+      )
+      localStorage.setItem('customer_access_token',  data.accessToken)
+      localStorage.setItem('customer_refresh_token', data.refreshToken)
+      accessToken.value = data.accessToken
+      try { user.value = JSON.parse(userData) } catch { clearSession(); return }
+    } catch {
+      clearSession()
+    }
+  } else {
+    clearSession()
+  }
+}
 
   // ── Login ─────────────────────────────────────────────────────────────────
   async function login(email: string, password: string) {

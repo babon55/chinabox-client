@@ -23,7 +23,9 @@
     "currency": "$",
     "allCategories": "Все категории",
     "resetFilters": "Сбросить фильтры",
-    "free": "Бесплатно"
+    "free": "Бесплатно",
+    "saving": "Сохраняется...",
+    "errorTryAgain": "Что-то пошло не так. Попробуйте снова."
   },
   "header": {
     "searchPlaceholder": "Поиск товаров...",
@@ -256,13 +258,29 @@
     "madeWithLove": "Сделано с ❤️ в Туркменистане"
   },
   "productComments": {
+    "count": "{total} отзыва",
+    "customerReviews": "Отзывы покупателей",
+    "loginToComment": "Войдите чтобы оставить отзыв",
+    "shareOpinion": "Поделитесь мнением с другими",
+    "login": "Войти",
+    "writeReview": "Написать отзыв",
+    "yourRating": "Ваша оценка:",
+    "yourReview": "Ваш отзыв:",
+    "submit": "✉ Отправить отзыв",
+    "submitting": "Отправка...",
+    "success": "Ваш отзыв успешно добавлен!",
+    "none": "Отзывов пока нет — будьте первым!",
+    "delete": "Удалить",
+    "ratingRequired": "Поставьте оценку",
+    "reviewRequired": "Напишите отзыв",
+    "error": "Произошла ошибка",
+    "alreadyReviewed": "Вы уже оставили отзыв на этот товар",
     "noComments": "Пока нет комментариев.",
     "writeComment": "Напишите комментарий...",
     "post": "Опубликовать",
     "posting": "Публикация...",
     "anonymous": "Аноним",
     "dateFormat": "d.M.yyyy HH:mm",
-    "loginToComment": "Войдите, чтобы комментировать",
     "loadMore": "Загрузить ещё"
   },
   "productOptions": {
@@ -387,23 +405,34 @@
     "analytics": "Аналитика",
     "logout": "Выйти"
   },
-  "productComments": {
-    "count": "{total} отзыва",
-    "customerReviews": "Отзывы покупателей",
-    "loginToComment": "Войдите чтобы оставить отзыв",
-    "shareOpinion": "Поделитесь мнением с другими",
-    "login": "Войти",
-    "writeReview": "Написать отзыв",
-    "yourRating": "Ваша оценка:",
-    "yourReview": "Ваш отзыв:",
-    "submit": "✉ Отправить отзыв",
-    "submitting": "Отправка...",
-    "success": "Ваш отзыв успешно добавлен!",
-    "none": "Отзывов пока нет — будьте первым!",
-    "delete": "Удалить",
-    "ratingRequired": "Поставьте оценку",
-    "reviewRequired": "Напишите отзыв",
-    "error": "Произошла ошибка",
-    "alreadyReviewed": "Вы уже оставили отзыв на этот товар"
+  "profile": {
+    "personalInfo": "Личная информация",
+    "fullName": "Полное имя",
+    "fullNamePlaceholder": "Ваше имя",
+    "email": "Эл. почта",
+    "phone": "Телефон",
+    "address": "Адрес доставки",
+    "addressPlaceholder": "Улица, город...",
+    "saveChanges": "Сохранить изменения",
+    "updateSuccess": "Профиль успешно обновлён!",
+    "emailInUse": "Этот email уже используется.",
+    "changePassword": "Изменить пароль",
+    "newPassword": "Новый пароль",
+    "passwordPlaceholder": "Минимум 6 символов",
+    "confirmPassword": "Подтвердите пароль",
+    "confirmPasswordPlaceholder": "Повторите пароль",
+    "updatePassword": "Обновить пароль",
+    "passwordMismatch": "Пароли не совпадают.",
+    "passwordSuccess": "Пароль успешно изменён!"
+  },
+  "wishlist": {
+    "title":          "Избранное",
+    "items":          "товаров",
+    "clearAll":       "Очистить всё",
+    "remove":         "Удалить",
+    "addToCart":      "В корзину",
+    "browseProducts": "Смотреть товары",
+    "emptyTitle":     "Список избранного пуст",
+    "emptyDesc":      "Просматривайте товары и нажимайте на сердечко чтобы добавить в избранное"
   }
 }

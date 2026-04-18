@@ -15,7 +15,8 @@ export interface UpdateProfilePayload {
 }
 
 export interface UpdatePasswordPayload {
-  password: string
+  currentPassword: string
+  newPassword:     string
 }
 
 export type FeedbackType = 'success' | 'error'

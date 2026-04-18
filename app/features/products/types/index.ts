@@ -11,9 +11,12 @@ export interface ProductOption {
 }
 
 export interface Category {
-  id:     string
-  nameTk: string
-  nameRu: string
+  id:       string
+  nameTk:   string
+  nameRu:   string
+  parentId?: string | null
+  parent?:   Category | null
+  children?: Category[]
 }
 
 export interface Product {

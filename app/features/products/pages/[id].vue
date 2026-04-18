@@ -206,6 +206,15 @@ useHead({
           <span class="bc-sep">›</span>
           <NuxtLink to="/products">{{ $t('footer.products') }}</NuxtLink>
           <span class="bc-sep">›</span>
+
+          <!-- Parent category if product is in a subcategory -->
+          <template v-if="product.category.parent">
+            <NuxtLink :to="`/products?category=${product.category.parentId}`">
+              {{ locale === 'tk' ? product.category.parent.nameTk : product.category.parent.nameRu }}
+            </NuxtLink>
+            <span class="bc-sep">›</span>
+          </template>
+
           <NuxtLink :to="`/products?category=${product.categoryId}`">
             {{ locale === 'tk' ? product.category.nameTk : product.category.nameRu }}
           </NuxtLink>

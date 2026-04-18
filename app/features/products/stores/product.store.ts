@@ -1,4 +1,4 @@
-import { defineStore }  from 'pinia'
+import { defineStore }   from 'pinia'
 import { ref, computed } from 'vue'
 import type { Product, Category } from '../types'
 
@@ -13,6 +13,7 @@ export type SortBy = 'random' | 'newest' | 'price_asc' | 'price_desc' | 'popular
 export const useProductStore = defineStore('products', () => {
   const config = useRuntimeConfig()
   const API    = config.public.apiBase
+  const hasLoaded = ref(false)
 
   // ── List state ─────────────────────────────────────────────────────────────
   const items       = ref<Product[]>([])
@@ -27,9 +28,31 @@ export const useProductStore = defineStore('products', () => {
   const page       = ref(1)
   const sortBy     = ref<SortBy>('random')
 
-  // ── Categories (fetched once, cached) ─────────────────────────────────────
+  // ── Categories (nested tree, fetched once) ─────────────────────────────────
   const categories        = ref<Category[]>([])
   const categoriesFetched = ref(false)
+
+  // Flat list derived from nested tree
+  const flatCategories = computed<Category[]>(() => {
+    const flat: Category[] = []
+    for (const cat of categories.value) {
+      flat.push(cat)
+      if (cat.children?.length) flat.push(...cat.children)
+    }
+    return flat
+  })
+
+  // Active category (checks both root and leaf)
+  const activeCategory = computed<Category | null>(() =>
+    flatCategories.value.find(c => c.id === categoryId.value) ?? null
+  )
+
+  // Parent of active category (if active is a subcategory)
+  const activeParentCategory = computed<Category | null>(() => {
+    const active = activeCategory.value
+    if (!active?.parentId) return null
+    return categories.value.find(c => c.id === active.parentId) ?? null
+  })
 
   // ── Detail state ───────────────────────────────────────────────────────────
   const currentProduct = ref<Product | null>(null)
@@ -40,25 +63,13 @@ export const useProductStore = defineStore('products', () => {
   const relatedItems   = ref<Product[]>([])
   const relatedPending = ref(false)
 
-  // ── Computed ───────────────────────────────────────────────────────────────
-  const activeCategory = computed(() =>
-    categories.value.find(c => c.id === categoryId.value) ?? null
-  )
-
-  // ── AbortController — cancels in-flight list requests ─────────────────────
-  let listAbort: AbortController | null = null
-
-  // ── Debounce timer for search ──────────────────────────────────────────────
+  // ── Abort / debounce ───────────────────────────────────────────────────────
+  let listAbort:   AbortController | null = null
   let searchTimer: ReturnType<typeof setTimeout> | null = null
 
   // ── Actions ────────────────────────────────────────────────────────────────
 
-  /**
-   * Fetch paginated product list.
-   * Cancels any in-flight request before starting a new one.
-   */
   async function fetchProducts(): Promise<void> {
-    // Cancel previous in-flight request
     listAbort?.abort()
     listAbort = new AbortController()
 
@@ -69,21 +80,21 @@ export const useProductStore = defineStore('products', () => {
       const res = await $fetch<ProductListResult>(`${API}/products`, {
         signal: listAbort.signal,
         params: {
-          search:   search.value    || undefined,
+          search:   search.value     || undefined,
           category: categoryId.value || undefined,
           sort:     sortBy.value,
           page:     page.value,
           limit:    12,
         },
       })
-      items.value = res.items
-      total.value = res.total
-      pages.value = res.pages
+      items.value     = res.items
+      total.value     = res.total
+      pages.value     = res.pages
+      hasLoaded.value = true
       if (sortBy.value === 'random') {
         items.value = [...items.value].sort(() => Math.random() - 0.5)
       }
     } catch (e: any) {
-      // Ignore abort errors — they're intentional
       if (e?.name === 'AbortError' || e?.cause?.name === 'AbortError') return
       listError.value = e?.data?.message ?? e?.message ?? 'Failed to load products'
     } finally {
@@ -91,10 +102,6 @@ export const useProductStore = defineStore('products', () => {
     }
   }
 
-  /**
-   * Debounced version — use for search input changes.
-   * Waits 350ms after last call before firing.
-   */
   function fetchProductsDebounced(delay = 350): void {
     if (searchTimer) clearTimeout(searchTimer)
     searchTimer = setTimeout(() => {
@@ -103,22 +110,16 @@ export const useProductStore = defineStore('products', () => {
     }, delay)
   }
 
-  /**
-   * Fetch categories once — subsequent calls are no-ops.
-   */
   async function fetchCategories(): Promise<void> {
     if (categoriesFetched.value) return
     try {
       categories.value    = await $fetch<Category[]>(`${API}/products/categories/all`)
       categoriesFetched.value = true
     } catch {
-      // Non-critical — sidebar stays empty
+      // Non-critical
     }
   }
 
-  /**
-   * Fetch a single product by id.
-   */
   async function fetchProduct(id: string): Promise<void> {
     detailPending.value  = true
     detailError.value    = null
@@ -132,10 +133,6 @@ export const useProductStore = defineStore('products', () => {
     }
   }
 
-  /**
-   * Fetch related products in the same category.
-   * Run in parallel with fetchProduct using Promise.all in [id].vue.
-   */
   async function fetchRelated(categoryIdParam: string, excludeId: string): Promise<void> {
     relatedPending.value = true
     relatedItems.value   = []
@@ -176,7 +173,7 @@ export const useProductStore = defineStore('products', () => {
     // filters
     search, categoryId, page, sortBy,
     // categories
-    categories, activeCategory,
+    categories, flatCategories, activeCategory, activeParentCategory,
     // detail
     currentProduct, detailPending, detailError,
     // related
@@ -185,5 +182,6 @@ export const useProductStore = defineStore('products', () => {
     fetchProducts, fetchProductsDebounced,
     fetchCategories, fetchProduct, fetchRelated,
     resetList, resetDetail,
+    hasLoaded,
   }
 })

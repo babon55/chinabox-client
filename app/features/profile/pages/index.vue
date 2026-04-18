@@ -31,9 +31,13 @@ import ProfilePasswordCard      from '../components/ProfilePasswordCard.vue'
 
 definePageMeta({ middleware: 'customer-auth' })
 
+const signinStore  = useSigninStore()
 const profileStore = useProfileStore()
 
-onMounted(() => profileStore.fetchProfile())
+onMounted(async () => {
+  await signinStore.restore()
+  await profileStore.fetchProfile()  // ← add await
+})
 </script>
 
 <style scoped>

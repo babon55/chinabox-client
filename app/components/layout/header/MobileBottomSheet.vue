@@ -17,7 +17,13 @@ const config      = useRuntimeConfig()
 const API         = config.public.apiBase
 
 interface Product  { id: string; nameTk: string; nameRu: string; image: string; imageUrl?: string | null; price: number; category: { nameTk: string; nameRu: string } }
-interface Category { id: string; nameTk: string; nameRu: string }
+interface Category {
+  id:       string
+  nameTk:   string
+  nameRu:   string
+  parentId?: string | null
+  children?: Category[]
+}
 
 const searchQuery   = ref('')
 const searchFocused = ref(false)
@@ -25,6 +31,22 @@ const results       = ref<Product[]>([])
 const categories    = ref<Category[]>([])
 const searching     = ref(false)
 const showDrop      = ref(false)
+
+const expandedCat = ref<string | null>(null)
+
+function toggleCat(id: string) {
+  expandedCat.value = expandedCat.value === id ? null : id
+}
+
+function goSubCategory(id: string) {
+  expandedCat.value = null
+  router.push(`/products?category=${id}`)
+  emit('close')
+}
+
+const rootCategories = computed(() =>
+  categories.value.filter(c => !c.parentId)
+)
 
 const langs = [
   { code: 'tk' as const, flag: '🇹🇲', label: 'TK' },
@@ -289,7 +311,94 @@ function onBackdrop(e: MouseEvent) {
               <span class="tile-name">{{ $t('footer.cart') }}</span>
             </button>
           </div>
+          <!-- ── Categories ── -->
+          <div class="cats-section">
+            <div class="cats-section-label">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+              </svg>
+              {{ locale === 'tk' ? 'Kategoriýalar' : 'Категории' }}
+            </div>
 
+            <div class="cats-list">
+              <!-- All products -->
+              <button class="cat-row" @click="goCategory('')">
+                <div class="cat-row-left">
+                  <div class="cat-row-icon all">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="3" width="7" height="7" rx="1"/>
+                      <rect x="14" y="3" width="7" height="7" rx="1"/>
+                      <rect x="14" y="14" width="7" height="7" rx="1"/>
+                      <rect x="3" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                  </div>
+                  <span class="cat-row-name">
+                    {{ locale === 'tk' ? 'Hemmesi' : 'Все товары' }}
+                  </span>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
+
+              <!-- Root categories with expandable subcategories -->
+              <div v-for="cat in rootCategories" :key="cat.id" class="cat-group">
+                <button
+                  :class="['cat-row', { expanded: expandedCat === cat.id }]"
+                  @click="cat.children?.length ? toggleCat(cat.id) : goCategory(cat.id)"
+                >
+                  <div class="cat-row-left">
+                    <div class="cat-row-icon">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                      </svg>
+                    </div>
+                    <span class="cat-row-name">{{ locale === 'tk' ? cat.nameTk : cat.nameRu }}</span>
+                    <span v-if="cat.children?.length" class="cat-sub-badge">
+                      {{ cat.children.length }}
+                    </span>
+                  </div>
+                  <svg
+                    :class="['cat-chevron', { open: expandedCat === cat.id }]"
+                    width="14" height="14" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                  >
+                    <polyline v-if="cat.children?.length" points="9 18 15 12 9 6"/>
+                    <polyline v-else points="9 18 15 12 9 6"/>
+                  </svg>
+                </button>
+
+                <!-- Subcategories accordion -->
+                <Transition name="sub-expand">
+                  <div v-if="expandedCat === cat.id && cat.children?.length" class="sub-cats">
+                    <!-- See all in parent -->
+                    <button class="sub-cat-row see-all-row" @click="goCategory(cat.id)">
+                      <span class="sub-connector">┌</span>
+                      <span class="sub-cat-name see-all-name">
+                        {{ locale === 'tk' ? 'Hemmesini gör' : 'Смотреть все' }}
+                      </span>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                        <polyline points="12 5 19 12 12 19"/>
+                      </svg>
+                    </button>
+
+                    <button
+                      v-for="(child, idx) in cat.children"
+                      :key="child.id"
+                      class="sub-cat-row"
+                      @click="goSubCategory(child.id)"
+                    >
+                      <span class="sub-connector">
+                        {{ idx === (cat.children!.length - 1) ? '└' : '├' }}
+                      </span>
+                      <span class="sub-cat-name">{{ locale === 'tk' ? child.nameTk : child.nameRu }}</span>
+                    </button>
+                  </div>
+                </Transition>
+              </div>
+            </div>
+          </div>
           <!-- Language row -->
           <div class="lang-strip">
             <div class="lang-left">
@@ -579,4 +688,164 @@ function onBackdrop(e: MouseEvent) {
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
 .lang-pill.active { background: #E8A020; color: #0F1117; }
+/* ── Categories section ── */
+.cats-section {
+  margin: 0 16px 16px;
+}
+
+.cats-section-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255,255,255,.25);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  padding: 0 4px 10px;
+}
+.cats-section-label svg { stroke: rgba(255,255,255,.25); flex-shrink: 0; }
+
+.cats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.cat-group { display: flex; flex-direction: column; }
+
+.cat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 16px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  cursor: pointer;
+  transition: background .15s;
+  -webkit-tap-highlight-color: transparent;
+  gap: 10px;
+}
+.cat-row:last-child { border-bottom: none; }
+.cat-row:active,
+.cat-row.expanded { background: rgba(232,160,32,.07); }
+
+.cat-row-left {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cat-row-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.cat-row-icon svg { stroke: rgba(255,255,255,.4); }
+.cat-row-icon.all { background: rgba(232,160,32,.12); border-color: rgba(232,160,32,.2); }
+.cat-row-icon.all svg { stroke: #E8A020; }
+.cat-row.expanded .cat-row-icon { background: rgba(232,160,32,.12); border-color: rgba(232,160,32,.2); }
+.cat-row.expanded .cat-row-icon svg { stroke: #E8A020; }
+
+.cat-row-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,.7);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cat-row.expanded .cat-row-name { color: #E8A020; }
+
+.cat-sub-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,.3);
+  background: rgba(255,255,255,.07);
+  padding: 1px 7px;
+  border-radius: 50px;
+  flex-shrink: 0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.cat-row.expanded .cat-sub-badge {
+  background: rgba(232,160,32,.15);
+  color: #E8A020;
+}
+
+.cat-chevron {
+  stroke: rgba(255,255,255,.2);
+  flex-shrink: 0;
+  transition: transform .25s ease, stroke .15s;
+}
+.cat-chevron.open {
+  transform: rotate(90deg);
+  stroke: #E8A020;
+}
+
+/* Subcategories */
+.sub-cats {
+  display: flex;
+  flex-direction: column;
+  background: rgba(0,0,0,.2);
+  border-top: 1px solid rgba(255,255,255,.05);
+}
+
+.sub-cat-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px 11px 20px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,.03);
+  cursor: pointer;
+  transition: background .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.sub-cat-row:last-child { border-bottom: none; }
+.sub-cat-row:active { background: rgba(232,160,32,.08); }
+
+.sub-connector {
+  font-size: 13px;
+  color: rgba(255,255,255,.15);
+  flex-shrink: 0;
+  line-height: 1;
+  width: 14px;
+  font-family: monospace;
+}
+
+.sub-cat-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,.5);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  text-align: left;
+  flex: 1;
+}
+
+.see-all-row { background: rgba(232,160,32,.04); }
+.see-all-name { color: #E8A020 !important; }
+.see-all-row svg { stroke: #E8A020; flex-shrink: 0; }
+
+/* Accordion transition */
+.sub-expand-enter-active { transition: all .25s ease; max-height: 400px; }
+.sub-expand-leave-active { transition: all .2s ease; }
+.sub-expand-enter-from   { opacity: 0; transform: translateY(-6px); }
+.sub-expand-leave-to     { opacity: 0; transform: translateY(-4px); }
 </style>

@@ -18,23 +18,11 @@
       <aside class="sidebar">
         <div class="sidebar-card">
           <h3 class="sidebar-title">{{ $t('header.categories') }}</h3>
-          <div class="cat-list">
-            <button
-              :class="['cat-btn', { active: !productStore.categoryId }]"
-              @click="selectCategory('')"
-            >
-              <span class="cat-icon">🏠</span>
-              {{ $t('common.allCategories') }}
-            </button>
-            <button
-              v-for="c in productStore.categories"
-              :key="c.id"
-              :class="['cat-btn', { active: productStore.categoryId === c.id }]"
-              @click="selectCategory(c.id)"
-            >
-              {{ locale === 'tk' ? c.nameTk : c.nameRu }}
-            </button>
-          </div>
+          <CategorySidebar
+            :categories="productStore.categories"
+            :category-id="productStore.categoryId"
+            @select="selectCategory"
+          />
         </div>
       </aside>
 
@@ -74,10 +62,24 @@
           </div>
         </div>
 
-        <!-- Active category chip -->
-        <div v-if="productStore.activeCategory" class="active-filter">
-          <span>{{ locale === 'tk' ? productStore.activeCategory.nameTk : productStore.activeCategory.nameRu }}</span>
-          <button @click="selectCategory('')">×</button>
+        <!-- Active filter chips -->
+        <div v-if="productStore.activeCategory" class="active-filters">
+          <button
+            v-if="productStore.activeParentCategory"
+            class="filter-chip parent-chip"
+            @click="selectCategory(productStore.activeParentCategory!.id)"
+          >
+            {{ locale === 'tk'
+              ? productStore.activeParentCategory.nameTk
+              : productStore.activeParentCategory.nameRu }}
+            <span class="chip-sep">›</span>
+          </button>
+          <div class="filter-chip active-chip">
+            <span>{{ locale === 'tk'
+              ? productStore.activeCategory.nameTk
+              : productStore.activeCategory.nameRu }}</span>
+            <button class="chip-close" @click="selectCategory('')">×</button>
+          </div>
         </div>
 
         <!-- Skeleton -->
@@ -135,6 +137,7 @@ import { useProductStore }      from '../stores/product.store'
 import { useProductCatalog }    from '../composables/useProductCatalog'
 import ProductCard              from '../components/ProductCard.vue'
 import QuickAddModal            from '../components/QuickAddModal.vue'
+import CategorySidebar          from '../components/CategorySidebar.vue'
 
 definePageMeta({ layout: 'default' })
 
@@ -153,7 +156,7 @@ productStore.categoryId = (route.query.category as string) ?? ''
 
 // ── Initial load ───────────────────────────────────────────────────────────
 await Promise.all([
-  productStore.fetchProducts(),
+  productStore.hasLoaded ? Promise.resolve() : productStore.fetchProducts(),
   productStore.fetchCategories(),
 ])
 
@@ -224,11 +227,6 @@ useHead({ title: computed(() => `${t('pages.products.title')} – SilkShop`) })
 .sidebar { position: sticky; top: 90px; height: fit-content; }
 .sidebar-card { background: var(--white); border-radius: var(--radius-lg); border: 1.5px solid var(--border-light); padding: 20px; box-shadow: var(--shadow-sm); }
 .sidebar-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 14px; }
-.cat-list { display: flex; flex-direction: column; gap: 2px; }
-.cat-btn { width: 100%; text-align: left; padding: 9px 12px; border-radius: var(--radius-md); border: none; background: transparent; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; font-family: var(--font-body); transition: all .12s; display: flex; align-items: center; gap: 8px; }
-.cat-btn:hover  { background: var(--surface); color: var(--dark); }
-.cat-btn.active { background: rgba(232,160,32,.1); color: var(--gold); }
-.cat-icon { font-size: 14px; }
 
 /* Toolbar */
 .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
@@ -240,11 +238,37 @@ useHead({ title: computed(() => `${t('pages.products.title')} – SilkShop`) })
 .toolbar-right { display: flex; align-items: center; gap: 12px; }
 .result-count  { font-size: 13px; color: var(--subtle); white-space: nowrap; font-family: var(--font-body); }
 .sort-select   { height: 42px; border: 1.5px solid var(--border); border-radius: var(--radius-md); background: var(--white); padding: 0 12px; font-size: 13px; font-family: var(--font-body); color: var(--dark); outline: none; cursor: pointer; }
+.active-filters { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
 
-/* Active filter chip */
-.active-filter { display: inline-flex; align-items: center; gap: 6px; background: rgba(232,160,32,.1); border: 1.5px solid rgba(232,160,32,.3); border-radius: var(--radius-pill); padding: 4px 10px 4px 14px; font-size: 12px; font-weight: 700; color: var(--gold); margin-bottom: 14px; }
-.active-filter button { background: none; border: none; cursor: pointer; color: var(--gold); font-size: 16px; line-height: 1; padding: 0; }
-
+.filter-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 30px; padding: 0 12px;
+  border-radius: var(--radius-pill);
+  font-size: 12px; font-weight: 700;
+  font-family: var(--font-body);
+  transition: all .15s;
+}
+.parent-chip {
+  background: var(--surface);
+  border: 1.5px solid var(--border-light);
+  color: var(--muted);
+  cursor: pointer;
+}
+.parent-chip:hover { border-color: var(--gold); color: var(--gold); background: rgba(232,160,32,.06); }
+.chip-sep { font-size: 14px; opacity: .5; }
+.active-chip {
+  background: rgba(232,160,32,.12);
+  border: 1.5px solid rgba(232,160,32,.3);
+  color: var(--gold);
+  cursor: default;
+}
+.chip-close {
+  background: none; border: none; cursor: pointer;
+  color: var(--gold); font-size: 16px; line-height: 1;
+  padding: 0; margin-left: 2px; opacity: .7;
+  transition: opacity .15s;
+}
+.chip-close:hover { opacity: 1; }
 /* Skeleton */
 .skeleton-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 18px; }
 .skeleton-card { background: var(--white); border-radius: var(--radius-lg); border: 1.5px solid var(--border-light); overflow: hidden; }

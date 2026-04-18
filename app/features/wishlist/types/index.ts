@@ -1,8 +1,2 @@
-// Wishlist — Types
-// Import explicitly: import type { Wishlist } from '~/features/wishlist/types'
-
-export interface Wishlist {
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Re-export WishlistItem from the store as the single source of truth
+export type { WishlistItem } from '../stores/wishlist.store'
