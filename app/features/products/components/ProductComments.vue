@@ -59,11 +59,6 @@ const submitting  = ref(false)
 const submitErr   = ref('')
 const submitted   = ref(false)
 
-const alreadyReviewed = computed(() =>
-  !!customerId.value &&
-  data.value.comments.some(c => c.customer.id === customerId.value)
-)
-
 async function submitComment() {
   if (!newRating.value) {
     submitErr.value = t('productComments.ratingRequired')
@@ -211,12 +206,6 @@ const reviewPlaceholder = computed(() =>
           {{ $t('productComments.login') }}
         </NuxtLink>
       </div>
-
-      <!-- Already reviewed -->
-      <div v-else-if="alreadyReviewed" class="already-reviewed">
-        ✓ {{ $t('productComments.alreadyReviewed') }}
-      </div>
-
       <!-- Form -->
       <div v-else class="review-form">
         <h3 class="form-title">{{ $t('productComments.writeReview') }}</h3>
@@ -382,12 +371,6 @@ const reviewPlaceholder = computed(() =>
 .prompt-title { font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 3px; }
 .prompt-sub   { font-size: 13px; color: var(--subtle); }
 .login-btn    { display: inline-flex; align-items: center; height: 40px; padding: 0 20px; border-radius: var(--radius-pill); background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: white; font-size: 13px; font-weight: 700; text-decoration: none; margin-left: auto; white-space: nowrap; }
-
-.already-reviewed {
-  background: rgba(34,197,94,.08); border: 1.5px solid rgba(34,197,94,.2);
-  border-radius: var(--radius-lg); padding: 14px 18px;
-  font-size: 14px; font-weight: 600; color: #14532D;
-}
 
 .review-form {
   background: var(--white); border: 1.5px solid var(--border-light);

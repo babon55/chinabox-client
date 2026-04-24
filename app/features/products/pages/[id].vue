@@ -24,12 +24,10 @@ const id    = computed(() => route.params.id as string)
 // ── Load product + related ────────────────────────────────────────────────────
 await productStore.fetchProduct(id.value)
 
-// Once the product is loaded, kick off related in the background (non-blocking)
 if (productStore.currentProduct) {
   productStore.fetchRelated(productStore.currentProduct.categoryId, id.value)
 }
 
-// Re-fetch when navigating between product pages (e.g. from related cards)
 watch(id, async (newId) => {
   await productStore.fetchProduct(newId)
   if (productStore.currentProduct) {
@@ -37,7 +35,6 @@ watch(id, async (newId) => {
   }
 })
 
-// Convenience alias
 const product = computed(() => productStore.currentProduct)
 const related = computed(() => productStore.relatedItems)
 
@@ -69,7 +66,6 @@ onMounted(() => {
   })
 })
 
-// Save to recently viewed
 watch(product, (p) => {
   if (!p) return
   const key     = 'silkshop_viewed'
@@ -78,23 +74,11 @@ watch(product, (p) => {
   localStorage.setItem(key, JSON.stringify(updated))
 })
 
-// ── Delivery / pricing ────────────────────────────────────────────────────────
-const FAST_RATE   = 11
-const SIMPLE_RATE = 7
-
-const delivery     = ref<'simple' | 'fast'>('simple')
-const homeDelivery = ref(false)
-const qty          = ref(1)
-const added        = ref(false)
-
-const markup       = computed(() => product.value?.markup ?? 50)
-const clientPrice  = computed(() => Number(product.value?.price ?? 0) * (1 + markup.value / 100))
-const weightKg     = computed(() => (product.value?.weightG ?? 0) / 1000)
-const deliveryCost = computed(() =>
-  weightKg.value * (delivery.value === 'fast' ? FAST_RATE : SIMPLE_RATE)
-  + (homeDelivery.value ? 1 : 0)
-)
-const totalPrice = computed(() => clientPrice.value + deliveryCost.value)
+// ── Pricing ───────────────────────────────────────────────────────────────────
+const qty         = ref(1)
+const added       = ref(false)
+const markup      = computed(() => product.value?.markup ?? 50)
+const clientPrice = computed(() => Number(product.value?.price ?? 0) * (1 + markup.value / 100))
 
 // ── Options ───────────────────────────────────────────────────────────────────
 const selectedOptions    = ref<SelectedOptions>({})
@@ -108,8 +92,6 @@ function addToCart() {
   if (!product.value) return
   if (hasOptions.value && optionsSelectorRef.value && !optionsSelectorRef.value.validate()) return
 
-  cartStore.setDeliveryType(delivery.value)
-  cartStore.setHomeDelivery(homeDelivery.value)
   cartStore.addItem({
     id:       product.value.id,
     nameTk:   product.value.nameTk,
@@ -206,15 +188,12 @@ useHead({
           <span class="bc-sep">›</span>
           <NuxtLink to="/products">{{ $t('footer.products') }}</NuxtLink>
           <span class="bc-sep">›</span>
-
-          <!-- Parent category if product is in a subcategory -->
           <template v-if="product.category.parent">
             <NuxtLink :to="`/products?category=${product.category.parentId}`">
               {{ locale === 'tk' ? product.category.parent.nameTk : product.category.parent.nameRu }}
             </NuxtLink>
             <span class="bc-sep">›</span>
           </template>
-
           <NuxtLink :to="`/products?category=${product.categoryId}`">
             {{ locale === 'tk' ? product.category.nameTk : product.category.nameRu }}
           </NuxtLink>
@@ -295,11 +274,28 @@ useHead({
               <span class="sold-count">{{ product.sold }} {{ lang === 'tk' ? 'gezek satyldy' : 'продано' }}</span>
             </div>
 
+            <!-- ── Price — clean, no delivery ── -->
             <div class="price-box">
               <div class="price-main">${{ fmt(clientPrice) }}</div>
               <div class="price-meta">
                 <span class="price-label">{{ lang === 'tk' ? 'Önüm bahasy' : 'Цена товара' }}</span>
+                <span v-if="product.weightG" class="price-weight">{{ product.weightG }}g</span>
               </div>
+            </div>
+
+            <!-- ── Delivery hint (read-only, no controls) ── -->
+            <div class="delivery-hint">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <rect x="1" y="3" width="15" height="13" rx="1"/>
+                <path d="M16 8h4l3 3v5h-7V8z"/>
+                <circle cx="5.5" cy="18.5" r="2.5"/>
+                <circle cx="18.5" cy="18.5" r="2.5"/>
+              </svg>
+              <span>
+                {{ lang === 'tk'
+                  ? 'Eltip beriş bahasy sebetde saýlanylar'
+                  : 'Стоимость доставки выбирается в корзине' }}
+              </span>
             </div>
 
             <ProductOptionsSelector
@@ -316,54 +312,6 @@ useHead({
               :lang="lang"
             />
 
-            <div class="delivery-section">
-              <h3 class="section-label">{{ lang === 'tk' ? 'Eltip beriş' : 'Способ доставки' }}</h3>
-              <div class="delivery-options">
-                <label :class="['d-option', { active: delivery === 'simple' }]">
-                  <input type="radio" v-model="delivery" value="simple" />
-                  <div class="d-body">
-                    <div class="d-top">
-                      <span>🚚 {{ lang === 'tk' ? 'Adaty (15–30 gün)' : 'Обычная (15–30 дней)' }}</span>
-                      <span class="d-cost">${{ fmt((product.weightG ?? 0) / 1000 * SIMPLE_RATE) }}</span>
-                    </div>
-                  </div>
-                </label>
-                <label :class="['d-option', { active: delivery === 'fast' }]">
-                  <input type="radio" v-model="delivery" value="fast" />
-                  <div class="d-body">
-                    <div class="d-top">
-                      <span>⚡ {{ lang === 'tk' ? 'Tiz (7–15 gün)' : 'Быстрая (7–15 дней)' }}</span>
-                      <span class="d-cost">${{ fmt((product.weightG ?? 0) / 1000 * FAST_RATE) }}</span>
-                    </div>
-                  </div>
-                </label>
-              </div>
-              <div class="home-delivery-toggle">
-                <label class="hd-label">
-                  <input type="checkbox" v-model="homeDelivery" />
-                  <span class="hd-text">🏠 {{ lang === 'tk' ? 'Öýe eltip bermek' : 'Доставка домой' }}</span>
-                  <span class="hd-cost">+$1.00</span>
-                </label>
-              </div>
-            </div>
-
-            <div class="total-box">
-              <div class="total-rows">
-                <div class="total-row">
-                  <span>{{ lang === 'tk' ? 'Önüm' : 'Товар' }}</span>
-                  <strong>${{ fmt(clientPrice) }}</strong>
-                </div>
-                <div class="total-row">
-                  <span>{{ lang === 'tk' ? 'Eltip beriş' : 'Доставка' }}</span>
-                  <strong>${{ fmt(deliveryCost) }}</strong>
-                </div>
-              </div>
-              <div class="total-final">
-                <span>{{ lang === 'tk' ? 'Jemi' : 'Итого' }}</span>
-                <strong>${{ fmt(totalPrice) }}</strong>
-              </div>
-            </div>
-
             <div v-if="hasOptions && Object.keys(selectedOptions).length" class="options-summary">
               <div v-for="opt in product.options.filter(o => selectedOptions[o.id])" :key="opt.id" class="opt-row">
                 <span class="opt-key">{{ lang === 'tk' ? opt.nameTk : opt.nameRu }}:</span>
@@ -371,6 +319,7 @@ useHead({
               </div>
             </div>
 
+            <!-- ── Action row ── -->
             <div class="action-row">
               <div class="qty-ctrl">
                 <button @click="qty = Math.max(1, qty - 1)">−</button>
@@ -568,48 +517,36 @@ useHead({
   display: flex; align-items: center; justify-content: space-between;
   background: var(--white); border-radius: var(--radius-lg);
   border: 1.5px solid var(--border-light);
-  padding: 16px 20px; margin-bottom: 14px;
+  padding: 16px 20px; margin-bottom: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,.04);
 }
 .price-main  { font-family: var(--font-display); font-size: 36px; font-weight: 800; color: var(--gold); }
 .price-meta  { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .price-label { font-size: 11px; color: var(--subtle); font-family: var(--font-body); }
+.price-weight { font-size: 11px; color: var(--subtle); font-family: var(--font-body); }
 
-/* Section label */
-.section-label { font-size: 12px; font-weight: 700; color: var(--dark); margin-bottom: 10px; font-family: var(--font-body); text-transform: uppercase; letter-spacing: .04em; }
-
-/* Delivery */
-.delivery-section { margin: 14px 0 16px; }
-.delivery-options { display: flex; flex-direction: column; gap: 8px; }
-.d-option { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: var(--radius-md); border: 1.5px solid var(--border); background: var(--white); cursor: pointer; transition: all .12s; }
-.d-option input[type="radio"] { margin-top: 3px; accent-color: var(--gold); }
-.d-option.active { border-color: var(--gold); background: rgba(232,160,32,.05); }
-.d-body { flex: 1; }
-.d-top  { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: var(--dark); font-family: var(--font-body); }
-.d-cost { color: var(--gold); }
-
-/* Home delivery */
-.home-delivery-toggle { margin-top: 10px; padding: 12px 14px; border-radius: var(--radius-md); border: 1.5px solid var(--border); background: var(--white); }
-.hd-label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-.hd-label input[type="checkbox"] { accent-color: var(--gold); width: 16px; height: 16px; }
-.hd-text  { flex: 1; font-size: 13px; font-weight: 700; color: var(--dark); font-family: var(--font-body); }
-.hd-cost  { font-size: 13px; font-weight: 700; color: var(--gold); }
-
-/* Total */
-.total-box { background: var(--white); border-radius: var(--radius-lg); border: 1.5px solid var(--border-light); overflow: hidden; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
-.total-rows { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid var(--border-light); }
-.total-row  { display: flex; justify-content: space-between; font-size: 13px; font-family: var(--font-body); }
-.total-row span { color: var(--subtle); }
-.total-row strong { color: var(--dark); font-weight: 700; }
-.total-final { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: linear-gradient(135deg, rgba(232,160,32,.06), rgba(232,160,32,.02)); }
-.total-final span { font-size: 13px; font-weight: 700; color: var(--dark); font-family: var(--font-body); }
-.total-final strong { font-family: var(--font-display); font-size: 28px; font-weight: 800; color: var(--dark); }
+/* Delivery hint (read-only) */
+.delivery-hint {
+  display: flex; align-items: center; gap: 7px;
+  padding: 10px 14px; border-radius: var(--radius-md);
+  background: rgba(232,160,32,0.05);
+  border: 1px dashed rgba(232,160,32,0.3);
+  margin-bottom: 14px;
+}
+.delivery-hint svg { color: var(--gold); flex-shrink: 0; }
+.delivery-hint span {
+  font-family: var(--font-body); font-size: 12px;
+  color: #92711A; font-weight: 600;
+}
 
 /* Options summary */
 .options-summary { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 14px; background: var(--surface); border-radius: var(--radius-md); border: 1px solid var(--border-light); margin-bottom: 14px; }
 .opt-row { display: flex; align-items: center; gap: 5px; }
 .opt-key { font-size: 12px; color: var(--subtle); font-family: var(--font-body); }
 .opt-val { font-size: 12px; font-weight: 700; border: 1.5px solid var(--gold); color: var(--gold); padding: 1px 8px; border-radius: var(--radius-pill); font-family: var(--font-body); }
+
+/* Section label */
+.section-label { font-size: 12px; font-weight: 700; color: var(--dark); margin-bottom: 10px; font-family: var(--font-body); text-transform: uppercase; letter-spacing: .04em; }
 
 /* Action row */
 .action-row { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }

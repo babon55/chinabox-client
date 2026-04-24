@@ -61,9 +61,34 @@ function goCategory(id: string) {
   showDrop.value = false; searchQuery.value = ''
   router.push(`/products?category=${id}`)
 }
-function onFocus()  { searchFocused.value = true;  if (searchQuery.value.trim()) showDrop.value = true }
+function onFocus() {
+  searchFocused.value = true
+  showDrop.value = true  // always open on focus, not just when query exists
+}
 function onBlur()   { searchFocused.value = false; setTimeout(() => showDrop.value = false, 180) }
 function fmt(n: number) { return Number(n).toFixed(2) }
+
+const searchHistory = ref<string[]>([])
+
+onMounted(() => {
+  // load alongside categories fetch
+  const saved = localStorage.getItem('silkshop_search_history')
+  if (saved) searchHistory.value = JSON.parse(saved)
+})
+
+function saveToHistory(query: string) {
+  const q = query.trim()
+  if (!q) return
+  const updated = [q, ...searchHistory.value.filter(h => h !== q)].slice(0, 5)
+  searchHistory.value = updated
+  localStorage.setItem('silkshop_search_history', JSON.stringify(updated))
+}
+
+function removeFromHistory(query: string) {
+  searchHistory.value = searchHistory.value.filter(h => h !== query)
+  localStorage.setItem('silkshop_search_history', JSON.stringify(searchHistory.value))
+}
+
 </script>
 
 <template>
@@ -109,6 +134,17 @@ function fmt(n: number) { return Number(n).toFixed(2) }
         </div>
 
         <template v-else>
+          <div v-if="!searchQuery.trim() && searchHistory.length" class="drop-section">
+            <div class="drop-label">
+              <!-- clock icon -->
+              🕐 {{ locale === 'tk' ? 'Soňky gözlegler' : 'Недавние запросы' }}
+            </div>
+            <div v-for="h in searchHistory" :key="h" class="drop-item history-item"
+                @mousedown.prevent="searchQuery = h; handleSearch()">
+              <span class="history-text">{{ h }}</span>
+              <button class="history-remove" @mousedown.stop.prevent="removeFromHistory(h)">×</button>
+            </div>
+          </div>
           <div v-if="results.length" class="drop-section">
             <div class="drop-label">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
@@ -240,6 +276,12 @@ function fmt(n: number) { return Number(n).toFixed(2) }
 .drop-count { margin-left: auto; background: rgba(232,160,32,.12); color: #E8A020; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 50px; }
 .drop-enter-active, .drop-leave-active { transition: opacity .15s, transform .15s; }
 .drop-enter-from, .drop-leave-to { opacity: 0; transform: translateY(-4px); }
+
+.history-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; cursor: pointer; transition: background .12s; }
+.history-item:hover { background: #FFF8EE; }
+.history-text { font-size: 13px; color: #374151; font-family: 'Plus Jakarta Sans', sans-serif; }
+.history-remove { background: none; border: none; color: #9CA3AF; font-size: 16px; cursor: pointer; padding: 0 4px; line-height: 1; }
+.history-remove:hover { color: #EF4444; }
 
 /* ── Mobile ── */
 @media (max-width: 768px) {

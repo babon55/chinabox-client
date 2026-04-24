@@ -213,6 +213,6 @@ export const useCartStore = defineStore('cart', () => {
     restoreCart, addItem, updateQuantity, removeItem,
     requestRemove, confirmRemove, cancelRemove,
     clearCart, checkout,
-    setDeliveryType, setHomeDelivery,
+    setDeliveryType, setHomeDelivery, totalWeightKg,
   }
 })

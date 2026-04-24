@@ -57,13 +57,14 @@ function handleLogout() { dropdownOpen.value = false; emit('logout') }
 
         <Transition name="drop">
           <div v-if="dropdownOpen" class="dropdown">
-            <div class="dd-header">
+            <NuxtLink to="/profile" class="dd-header" @click="dropdownOpen = false">
               <div class="dd-avatar">{{ initials }}</div>
               <div>
                 <div class="dd-name">{{ user?.name }}</div>
                 <div class="dd-email">{{ user?.email }}</div>
+                <div class="dd-edit-hint">Edit profile →</div>
               </div>
-            </div>
+            </NuxtLink>
             <div class="dd-divider" />
             <NuxtLink to="/orders" class="dd-item" @click="dropdownOpen = false">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/></svg>
@@ -126,7 +127,31 @@ function handleLogout() { dropdownOpen.value = false; emit('logout') }
 
 /* Dropdown */
 .dropdown { position: absolute; top: calc(100% + 8px); right: 0; min-width: 210px; background: white; border-radius: 16px; border: 1.5px solid #F3F4F6; box-shadow: 0 16px 48px rgba(0,0,0,.15); z-index: 300; overflow: hidden; }
-.dd-header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; background: linear-gradient(135deg, #0F1117, #1a1d2e); }
+.dd-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #0F1117, #1a1d2e);
+  text-decoration: none;
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+.dd-header:hover {
+  filter: brightness(1.2);
+}
+.dd-edit-hint {
+  font-size: 10px;
+  color: #E8A020;
+  margin-top: 4px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.dd-header:hover .dd-edit-hint {
+  opacity: 1;
+}
 .dd-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #E8A020, #FF8C00); color: white; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0; }
 .dd-name  { font-size: 13px; font-weight: 700; color: white; }
 .dd-email { font-size: 11px; color: rgba(255,255,255,.45); margin-top: 1px; }

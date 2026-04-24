@@ -14,7 +14,7 @@ export function useCart() {
     item:              t('cart.itemCount'),
     items:             t('cart.itemCount'),
     remove:            t('cartItem.remove'),
-    saveForLater:      t('cartItem.save'), // placeholder if needed
+    saveForLater:      t('cartItem.save'),
     color:             t('cartItem.color'),
     size:              t('cartItem.size'),
     seller:            t('cartItem.seller'),
@@ -24,7 +24,7 @@ export function useCart() {
     subtotal:          t('cart.subtotal'),
     discount:          t('cart.discount'),
     shipping:          t('cart.shipping'),
-    shippingFree:      t('common.free'), // placeholder
+    shippingFree:      t('common.free'),
     total:             t('cart.total'),
     checkout:          t('cart.checkout'),
     continueShopping:  t('cart.continueShopping'),
@@ -33,6 +33,12 @@ export function useCart() {
     promoApply:        t('cart.promoApply'),
     clearCart:         t('cart.clearCart'),
     estimatedDelivery: t('cart.estimatedDelivery'),
+    deliveryType:      t('cart.deliveryType'),
+    deliverySimple:    t('cart.deliverySimple'),
+    deliveryFast:      t('cart.deliveryFast'),
+    deliveryHome:      t('cart.deliveryHome'),
+    deliveryWayPrice:  t('cart.deliveryWayPrice'),
+    days:              t('cart.days'),
   }))
 
   function formatPrice(amount: number): string {

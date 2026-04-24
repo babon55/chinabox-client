@@ -60,7 +60,13 @@
     "removeNo": "Нет",
     "clearConfirm": "Очистить корзину?",
     "clearYes": "Да, очистить",
-    "clearNo": "Нет"
+    "clearNo": "Нет",
+    "deliveryType":   "Способ доставки",
+    "deliverySimple": "Морская доставка",
+    "deliveryFast":   "Авиадоставка",
+    "deliveryHome":   "Доставка на дом (+$1)",
+    "deliveryWayPrice": "за кг",
+    "days":           "дней"
   },
   "cartItem": {
     "remove": "Удалить",

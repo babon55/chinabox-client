@@ -60,7 +60,13 @@
     "removeNo": "Ýok",
     "clearConfirm": "Sebedde gowşan harytlaryňyzyňyzny aýyrmak isleýärsiňizmi?",
     "clearYes": "Hawa, aýyr",
-    "clearNo": "Ýok"
+    "clearNo": "Ýok",
+    "deliveryType":   "Eltip beriş görnüşi",
+    "deliverySimple": "Deňiz arkaly",
+    "deliveryFast":   "Howa arkaly",
+    "deliveryHome":   "Öýe eltip beriş (+$1)",
+    "deliveryWayPrice": "kg üçin",
+    "days":           "gün"
   },
   "cartItem": {
     "remove": "Poz",

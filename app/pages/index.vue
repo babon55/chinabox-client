@@ -29,7 +29,6 @@ onMounted(async () => {
   }
 })
 
-// ── Markup helper ─────────────────────────────────────────────────────────────
 function clientPrice(price: number, markup: number = 50) {
   return Number(price) * (1 + (markup ?? 50) / 100)
 }
@@ -65,6 +64,81 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'ChinaBox — Baş sahypa'
 
 <template>
   <div class="home">
+
+    <!-- ══ HERO ══ -->
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="hero-content">
+          <div class="hero-badge">
+            🇨🇳 {{ lang === 'tk' ? 'Hytaýdan Türkmenistana' : 'Из Китая в Туркменистан' }}
+          </div>
+          <h1 class="hero-title">
+            <span v-if="lang === 'tk'">Hytaý Harytlary<br/><em>Gapyňyza Çenli</em></span>
+            <span v-else>Товары из Китая<br/><em>Прямо к вашей двери</em></span>
+          </h1>
+          <p class="hero-sub">
+            <span v-if="lang === 'tk'">Müňlerçe haryt, amatly bahalar, ygtybarly eltip beriş.</span>
+            <span v-else>Тысячи товаров, выгодные цены, надёжная доставка.</span>
+          </p>
+          <div class="hero-actions">
+            <NuxtLink to="/products" class="hero-btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              {{ lang === 'tk' ? 'Harytlara Göz Aýla' : 'Смотреть товары' }}
+            </NuxtLink>
+            <NuxtLink to="/request" class="hero-btn-secondary">
+              {{ lang === 'tk' ? 'Haryt Sargyt Et' : 'Заказать товар' }}
+            </NuxtLink>
+          </div>
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <strong>1000+</strong>
+              <span>{{ lang === 'tk' ? 'Haryt' : 'Товаров' }}</span>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+              <strong>7–15</strong>
+              <span>{{ lang === 'tk' ? 'Gün (Tiz)' : 'Дней (Быстро)' }}</span>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+              <strong>$7/kg</strong>
+              <span>{{ lang === 'tk' ? 'Eltip beriş' : 'Доставка' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="hero-card hero-card-1">
+            <span class="hc-icon">📦</span>
+            <div>
+              <div class="hc-title">{{ lang === 'tk' ? 'Sargyt #1042' : 'Заказ #1042' }}</div>
+              <div class="hc-sub">{{ lang === 'tk' ? 'Iberildi ✈️' : 'Отправлен ✈️' }}</div>
+            </div>
+          </div>
+          <div class="hero-card hero-card-2">
+            <span class="hc-icon">⭐</span>
+            <div>
+              <div class="hc-title">{{ lang === 'tk' ? 'Müşderi baha' : 'Отзыв клиента' }}</div>
+              <div class="hc-stars">★★★★★</div>
+            </div>
+          </div>
+          <div class="hero-globe">🌏</div>
+          <div class="hero-card hero-card-3">
+            <span class="hc-icon">🚀</span>
+            <div>
+              <div class="hc-title">{{ lang === 'tk' ? 'Tiz eltip beriş' : 'Быстрая доставка' }}</div>
+              <div class="hc-sub">7–15 {{ lang === 'tk' ? 'gün' : 'дней' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- decorative blobs -->
+      <div class="hero-blob hero-blob-1"></div>
+      <div class="hero-blob hero-blob-2"></div>
+    </section>
 
     <!-- ══ HOW IT WORKS ══ -->
     <section class="steps-section">
@@ -105,7 +179,10 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'ChinaBox — Baş sahypa'
         </div>
         <div class="categories-grid">
           <NuxtLink v-for="c in categories" :key="c.id" :to="`/products?category=${c.id}`" class="cat-card">
-            <div class="cat-icon">{{ catIcon(c) }}</div>
+            <div class="cat-icon">
+              <img v-if="c.imageUrl" :src="c.imageUrl" style="width:48px;height:48px;object-fit:cover;border-radius:8px;" />
+              <span v-else>{{ catIcon(c) }}</span>
+            </div>  
             <span class="cat-name">{{ lang === 'tk' ? c.nameTk : c.nameRu }}</span>
             <div class="cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
           </NuxtLink>
@@ -168,12 +245,146 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'ChinaBox — Baş sahypa'
 .white-bg   { background: var(--white); }
 .surface-bg { background: var(--surface); }
 .inner { max-width: 1200px; margin: 0 auto; }
-
 .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
 .section-title { font-family: var(--font-display); font-size: 26px; font-weight: 700; color: var(--dark); }
 .see-all { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--gold); text-decoration: none; transition: gap .15s; }
 .see-all svg { width: 14px; height: 14px; }
 .see-all:hover { gap: 10px; }
+
+/* ══ HERO ══ */
+.hero {
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg, #0f1117 0%, #1a1d2e 50%, #0f1117 100%);
+  padding: 72px 24px 80px;
+}
+
+.hero-blob {
+  position: absolute; border-radius: 50%;
+  filter: blur(80px); pointer-events: none;
+}
+.hero-blob-1 {
+  width: 500px; height: 500px;
+  background: rgba(232, 160, 32, 0.12);
+  top: -100px; right: -100px;
+}
+.hero-blob-2 {
+  width: 300px; height: 300px;
+  background: rgba(59, 130, 246, 0.08);
+  bottom: -80px; left: 10%;
+}
+
+.hero-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 60px; align-items: center;
+  position: relative; z-index: 1;
+}
+
+.hero-content { display: flex; flex-direction: column; gap: 24px; }
+
+.hero-badge {
+  display: inline-flex; align-items: center;
+  width: fit-content;
+  padding: 6px 14px; border-radius: 50px;
+  background: rgba(232, 160, 32, 0.15);
+  border: 1px solid rgba(232, 160, 32, 0.3);
+  font-size: 13px; font-weight: 700;
+  color: #E8A020;
+  font-family: var(--font-body);
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: 52px; font-weight: 800;
+  color: white; line-height: 1.1;
+  margin: 0;
+}
+.hero-title em {
+  font-style: normal;
+  background: linear-gradient(135deg, #E8A020, #FF8C00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-sub {
+  font-size: 16px; color: rgba(255,255,255,0.55);
+  line-height: 1.6; margin: 0;
+  font-family: var(--font-body);
+}
+
+.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+.hero-btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 48px; padding: 0 24px; border-radius: 50px;
+  background: linear-gradient(135deg, #E8A020, #FF8C00);
+  color: white; font-size: 14px; font-weight: 700;
+  text-decoration: none; font-family: var(--font-body);
+  transition: all .2s;
+  box-shadow: 0 8px 24px rgba(232, 160, 32, 0.35);
+}
+.hero-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(232, 160, 32, 0.5);
+}
+
+.hero-btn-secondary {
+  display: inline-flex; align-items: center;
+  height: 48px; padding: 0 24px; border-radius: 50px;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 700;
+  text-decoration: none; font-family: var(--font-body);
+  transition: all .2s;
+}
+.hero-btn-secondary:hover {
+  border-color: rgba(255,255,255,0.5);
+  color: white;
+  background: rgba(255,255,255,0.06);
+}
+
+.hero-stats {
+  display: flex; align-items: center; gap: 20px;
+  padding-top: 8px;
+}
+.hero-stat { display: flex; flex-direction: column; gap: 2px; }
+.hero-stat strong { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: white; }
+.hero-stat span   { font-size: 11px; color: rgba(255,255,255,0.4); font-family: var(--font-body); text-transform: uppercase; letter-spacing: .06em; }
+.hero-stat-divider { width: 1px; height: 36px; background: rgba(255,255,255,0.1); }
+
+/* Hero visual (floating cards) */
+.hero-visual {
+  position: relative; height: 340px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.hero-globe {
+  font-size: 140px; line-height: 1;
+  filter: drop-shadow(0 20px 60px rgba(0,0,0,0.5));
+  animation: float 4s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-12px); }
+}
+
+.hero-card {
+  position: absolute;
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px; padding: 12px 16px;
+  white-space: nowrap;
+}
+.hero-card-1 { top: 20px;  left: -20px; animation: float 4s ease-in-out infinite 0.5s; }
+.hero-card-2 { top: 30px;  right: -10px; animation: float 4s ease-in-out infinite 1s; }
+.hero-card-3 { bottom: 30px; left: 10px; animation: float 4s ease-in-out infinite 1.5s; }
+
+.hc-icon  { font-size: 28px; }
+.hc-title { font-size: 13px; font-weight: 700; color: white; font-family: var(--font-body); }
+.hc-sub   { font-size: 11px; color: rgba(255,255,255,0.5); font-family: var(--font-body); margin-top: 2px; }
+.hc-stars { font-size: 12px; color: #E8A020; margin-top: 2px; }
 
 /* ══ HOW IT WORKS ══ */
 .steps-section { background: var(--dark); padding: 48px 24px; }
@@ -181,14 +392,11 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'ChinaBox — Baş sahypa'
 .steps-head { text-align: center; margin-bottom: 36px; }
 .steps-title { font-family: var(--font-display); font-size: 26px; font-weight: 700; color: white; margin-bottom: 8px; }
 .steps-sub { font-size: 14px; color: rgba(255,255,255,0.4); }
-
 .steps-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; }
 .step-card { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding: 8px 12px; position: relative; }
-
 .step-num-wrap { display: flex; align-items: center; width: 100%; justify-content: center; position: relative; margin-bottom: 4px; }
 .step-num { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; z-index: 1; flex-shrink: 0; }
 .step-connector { position: absolute; top: 50%; left: calc(50% + 20px); right: calc(-50% + 20px); height: 1.5px; background: rgba(255,255,255,0.08); z-index: 0; }
-
 .step-icon-wrap { width: 56px; height: 56px; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; }
 .step-icon-wrap svg { width: 24px; height: 24px; }
 .step-title { font-size: 14px; font-weight: 700; color: white; }
@@ -208,13 +416,11 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'ChinaBox — Baş sahypa'
 
 /* ══ PRODUCTS ══ */
 .products-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-
 .product-skeleton { background: var(--white); border-radius: var(--radius-lg); overflow: hidden; border: 1.5px solid var(--border-light); }
 .skel-img { height: 180px; background: linear-gradient(90deg, var(--border-light) 25%, var(--surface) 50%, var(--border-light) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
 .skel-line { margin: 12px; height: 12px; border-radius: 6px; background: linear-gradient(90deg, var(--border-light) 25%, var(--surface) 50%, var(--border-light) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
 .skel-line-1 { width: 60%; } .skel-line-2 { width: 80%; } .skel-line-3 { width: 50%; }
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
 .product-card { background: var(--white); border: 1.5px solid var(--border-light); border-radius: var(--radius-lg); overflow: hidden; text-decoration: none; display: flex; flex-direction: column; transition: all .2s; }
 .product-card:hover { border-color: var(--gold); transform: translateY(-4px); box-shadow: var(--shadow-md); }
 .product-img-wrap { position: relative; height: 180px; background: var(--surface); overflow: hidden; display: flex; align-items: center; justify-content: center; }
@@ -236,6 +442,12 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'ChinaBox — Baş sahypa'
 .product-btn:disabled { background: var(--border); color: var(--subtle); cursor: not-allowed; }
 
 /* ══ RESPONSIVE ══ */
+@media (max-width: 1024px) {
+  .hero-inner { grid-template-columns: 1fr; gap: 40px; }
+  .hero-visual { height: 220px; }
+  .hero-title { font-size: 40px; }
+  .hero-globe { font-size: 100px; }
+}
 @media (max-width: 900px) {
   .categories-grid { grid-template-columns: repeat(3, 1fr); }
   .products-grid { grid-template-columns: repeat(2, 1fr); }
@@ -243,6 +455,8 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'ChinaBox — Baş sahypa'
   .step-connector { display: none; }
 }
 @media (max-width: 600px) {
+  .hero-title { font-size: 32px; }
+  .hero-visual { display: none; }
   .categories-grid { grid-template-columns: repeat(2, 1fr); }
   .products-grid { grid-template-columns: 1fr 1fr; }
   .steps-grid { grid-template-columns: repeat(2, 1fr); }
