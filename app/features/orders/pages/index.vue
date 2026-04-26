@@ -98,7 +98,7 @@ watch(() => signinStore.isLoggedIn, (val, old) => {
   if (val && old === false) store.fetchOrders()
 })
 
-useHead({ title: computed(() => `${t('pages.orders.title')} – ChinaBox`) })
+useHead({ title: computed(() => `${t('pages.orders.title')} – ChinaExpress`) })
 </script>
 
 <style scoped>

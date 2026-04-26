@@ -10,7 +10,7 @@ const { t } = useI18n()
       <img src="" class="logo-icon"></img>
     </div>
     <div class="logo-text">
-      <span class="logo-main">ChinaBox</span>
+      <span class="logo-main">ChinaExpress</span>
       <span class="logo-sub">
         {{ $t('header.logoTagline') }}
       </span>

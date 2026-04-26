@@ -59,7 +59,7 @@ function catIcon(c: any) {
   return CAT_ICONS[c.nameTk] ?? CAT_ICONS[c.nameRu] ?? '📦'
 }
 
-useHead({ title: computed(() => lang.value === 'tk' ? 'ChinaBox — Baş sahypa' : 'ChinaBox — Главная') })
+useHead({ title: computed(() => lang.value === 'tk' ? 'ChinaExpress — Baş sahypa' : 'ChinaExpress — Главная') })
 </script>
 
 <template>
