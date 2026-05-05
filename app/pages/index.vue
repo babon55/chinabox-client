@@ -1,20 +1,23 @@
 <script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
 definePageMeta({ layout: 'default' })
 
 const config = useRuntimeConfig()
-const API   = config.public.apiBase
+const API = config.public.apiBase
 
-const lang = ref<'tk' | 'ru'>('tk')
-onMounted(() => {
-  const saved = localStorage.getItem('silkshop_lang')
-  if (saved === 'tk' || saved === 'ru') lang.value = saved as 'tk' | 'ru'
-})
+const { locale } = useI18n()   // ← single source of truth for language
 
 const products   = ref<any[]>([])
 const categories = ref<any[]>([])
 const loadingProducts = ref(true)
 
 onMounted(async () => {
+  // restore saved lang on mount
+  const saved = localStorage.getItem('chinaexpress_lang')
+  if (saved === 'tk' || saved === 'ru') locale.value = saved as 'tk' | 'ru'
+
   try {
     const [prodRes, catRes] = await Promise.all([
       $fetch<any>(`${API}/products?limit=8&status=ACTIVE`),
@@ -29,12 +32,12 @@ onMounted(async () => {
   }
 })
 
-function clientPrice(price: number, markup: number = 50) {
+function clientPrice(price: number, markup = 50) {
   return Number(price) * (1 + (markup ?? 50) / 100)
 }
 function fmt(n: number) { return Number(n).toFixed(2) }
 
-const steps = computed(() => lang.value === 'tk' ? [
+const steps = computed(() => locale.value === 'tk' ? [
   { num: 1, icon: 'user',   color: '#E8A020', title: 'Hasap Aç',      desc: 'E-poçtaňyz bilen mugt hasap açyň.' },
   { num: 2, icon: 'search', color: '#3B82F6', title: 'Haryt Saýla',   desc: 'Müňlerçe harydyň içinden gerekliňizi tapyň.' },
   { num: 3, icon: 'cart',   color: '#22C55E', title: 'Sargyt Et',     desc: 'Sebede goşuň we sargydyňyzy tassyklaň.' },
@@ -50,102 +53,28 @@ const steps = computed(() => lang.value === 'tk' ? [
 
 const CAT_ICONS: Record<string, string> = {
   'Elektronika': '📱', 'Электроника': '📱',
-  'Aksesuar': '⌚', 'Аксессуары': '⌚',
-  'Egin-eşik': '👗', 'Одежда': '👗',
-  'Gözellik': '💄', 'Красота': '💄',
-  'Öý üçin': '🏠', 'Для дома': '🏠',
+  'Aksesuar': '⌚',    'Аксессуары': '⌚',
+  'Egin-eşik': '👗',  'Одежда': '👗',
+  'Gözellik': '💄',   'Красота': '💄',
+  'Öý üçin': '🏠',    'Для дома': '🏠',
 }
 function catIcon(c: any) {
   return CAT_ICONS[c.nameTk] ?? CAT_ICONS[c.nameRu] ?? '📦'
 }
 
-useHead({ title: computed(() => lang.value === 'tk' ? 'ChinaExpress — Baş sahypa' : 'ChinaExpress — Главная') })
+useHead({ title: computed(() => locale.value === 'tk' ? 'ChinaExpress — Baş sahypa' : 'ChinaExpress — Главная') })
 </script>
 
 <template>
   <div class="home">
 
-    <!-- ══ HERO ══ -->
-    <section class="hero">
-      <div class="hero-inner">
-        <div class="hero-content">
-          <div class="hero-badge">
-            🇨🇳 {{ lang === 'tk' ? 'Hytaýdan Türkmenistana' : 'Из Китая в Туркменистан' }}
-          </div>
-          <h1 class="hero-title">
-            <span v-if="lang === 'tk'">Hytaý Harytlary<br/><em>Gapyňyza Çenli</em></span>
-            <span v-else>Товары из Китая<br/><em>Прямо к вашей двери</em></span>
-          </h1>
-          <p class="hero-sub">
-            <span v-if="lang === 'tk'">Müňlerçe haryt, amatly bahalar, ygtybarly eltip beriş.</span>
-            <span v-else>Тысячи товаров, выгодные цены, надёжная доставка.</span>
-          </p>
-          <div class="hero-actions">
-            <NuxtLink to="/products" class="hero-btn-primary">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-              {{ lang === 'tk' ? 'Harytlara Göz Aýla' : 'Смотреть товары' }}
-            </NuxtLink>
-            <NuxtLink to="/request" class="hero-btn-secondary">
-              {{ lang === 'tk' ? 'Haryt Sargyt Et' : 'Заказать товар' }}
-            </NuxtLink>
-          </div>
-          <div class="hero-stats">
-            <div class="hero-stat">
-              <strong>1000+</strong>
-              <span>{{ lang === 'tk' ? 'Haryt' : 'Товаров' }}</span>
-            </div>
-            <div class="hero-stat-divider"></div>
-            <div class="hero-stat">
-              <strong>7–15</strong>
-              <span>{{ lang === 'tk' ? 'Gün (Tiz)' : 'Дней (Быстро)' }}</span>
-            </div>
-            <div class="hero-stat-divider"></div>
-            <div class="hero-stat">
-              <strong>$7/kg</strong>
-              <span>{{ lang === 'tk' ? 'Eltip beriş' : 'Доставка' }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="hero-visual">
-          <div class="hero-card hero-card-1">
-            <span class="hc-icon">📦</span>
-            <div>
-              <div class="hc-title">{{ lang === 'tk' ? 'Sargyt #1042' : 'Заказ #1042' }}</div>
-              <div class="hc-sub">{{ lang === 'tk' ? 'Iberildi ✈️' : 'Отправлен ✈️' }}</div>
-            </div>
-          </div>
-          <div class="hero-card hero-card-2">
-            <span class="hc-icon">⭐</span>
-            <div>
-              <div class="hc-title">{{ lang === 'tk' ? 'Müşderi baha' : 'Отзыв клиента' }}</div>
-              <div class="hc-stars">★★★★★</div>
-            </div>
-          </div>
-          <div class="hero-globe">🌏</div>
-          <div class="hero-card hero-card-3">
-            <span class="hc-icon">🚀</span>
-            <div>
-              <div class="hc-title">{{ lang === 'tk' ? 'Tiz eltip beriş' : 'Быстрая доставка' }}</div>
-              <div class="hc-sub">7–15 {{ lang === 'tk' ? 'gün' : 'дней' }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- decorative blobs -->
-      <div class="hero-blob hero-blob-1"></div>
-      <div class="hero-blob hero-blob-2"></div>
-    </section>
-
     <!-- ══ HOW IT WORKS ══ -->
     <section class="steps-section">
+      <!-- unchanged inner content, just replace all `lang` with `locale` -->
       <div class="steps-inner">
         <div class="steps-head">
-          <h2 class="steps-title">{{ lang === 'tk' ? 'Nädip Işleýär?' : 'Как это работает?' }}</h2>
-          <p class="steps-sub">{{ lang === 'tk' ? 'Diňe 5 ädimde sargydyňyz gapyňyza gowşurylýar' : 'Всего 5 шагов — и заказ у вас дома' }}</p>
+          <h2 class="steps-title">{{ locale === 'tk' ? 'Nädip Işleýär?' : 'Как это работает?' }}</h2>
+          <p class="steps-sub">{{ locale === 'tk' ? 'Diňe 5 ädimde sargydyňyz gapyňyza gowşurylýar' : 'Всего 5 шагов — и заказ у вас дома' }}</p>
         </div>
         <div class="steps-grid">
           <div v-for="s in steps" :key="s.num" class="step-card">
@@ -171,9 +100,9 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'ChinaExpress — Baş sah
     <section class="full-section white-bg">
       <div class="inner">
         <div class="section-head">
-          <h2 class="section-title">{{ lang === 'tk' ? 'Kategoriýalar' : 'Категории' }}</h2>
+          <h2 class="section-title">{{ locale === 'tk' ? 'Kategoriýalar' : 'Категории' }}</h2>
           <NuxtLink to="/products" class="see-all">
-            {{ lang === 'tk' ? 'Hemmesini Gör' : 'Все категории' }}
+            {{ locale === 'tk' ? 'Hemmesini Gör' : 'Все категории' }}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </NuxtLink>
         </div>
@@ -182,8 +111,8 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'ChinaExpress — Baş sah
             <div class="cat-icon">
               <img v-if="c.imageUrl" :src="c.imageUrl" style="width:48px;height:48px;object-fit:cover;border-radius:8px;" />
               <span v-else>{{ catIcon(c) }}</span>
-            </div>  
-            <span class="cat-name">{{ lang === 'tk' ? c.nameTk : c.nameRu }}</span>
+            </div>
+            <span class="cat-name">{{ locale === 'tk' ? c.nameTk : c.nameRu }}</span>
             <div class="cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
           </NuxtLink>
         </div>
@@ -194,9 +123,9 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'ChinaExpress — Baş sah
     <section class="full-section surface-bg">
       <div class="inner">
         <div class="section-head">
-          <h2 class="section-title">{{ lang === 'tk' ? 'Meşhur Önümler' : 'Популярные товары' }}</h2>
+          <h2 class="section-title">{{ locale === 'tk' ? 'Meşhur Önümler' : 'Популярные товары' }}</h2>
           <NuxtLink to="/products" class="see-all">
-            {{ lang === 'tk' ? 'Hemmesini Gör' : 'Смотреть все' }}
+            {{ locale === 'tk' ? 'Hemmesini Gör' : 'Смотреть все' }}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </NuxtLink>
         </div>
@@ -211,22 +140,22 @@ useHead({ title: computed(() => lang.value === 'tk' ? 'ChinaExpress — Baş sah
         <div v-else class="products-grid">
           <NuxtLink v-for="p in products" :key="p.id" :to="`/products/${p.id}`" class="product-card">
             <div class="product-img-wrap">
-              <img v-if="p.imageUrl" :src="p.imageUrl" :alt="lang === 'tk' ? p.nameTk : p.nameRu" class="product-img" />
+              <img v-if="p.imageUrl" :src="p.imageUrl" :alt="locale === 'tk' ? p.nameTk : p.nameRu" class="product-img" />
               <div v-else class="product-emoji">{{ p.image }}</div>
               <div class="product-badge-wrap">
-                <span v-if="p.stock === 0" class="prod-badge out">{{ lang === 'tk' ? 'Gutardy' : 'Нет' }}</span>
-                <span v-else-if="p.stock <= 10" class="prod-badge low">{{ lang === 'tk' ? 'Az galdy' : 'Мало' }}</span>
+                <span v-if="p.stock === 0"    class="prod-badge out">{{ locale === 'tk' ? 'Gutardy' : 'Нет' }}</span>
+                <span v-else-if="p.stock <= 10" class="prod-badge low">{{ locale === 'tk' ? 'Az galdy' : 'Мало' }}</span>
               </div>
             </div>
             <div class="product-info">
-              <div class="product-cat">{{ lang === 'tk' ? p.category?.nameTk : p.category?.nameRu }}</div>
-              <div class="product-name">{{ lang === 'tk' ? p.nameTk : p.nameRu }}</div>
+              <div class="product-cat">{{ locale === 'tk' ? p.category?.nameTk : p.category?.nameRu }}</div>
+              <div class="product-name">{{ locale === 'tk' ? p.nameTk : p.nameRu }}</div>
               <div class="product-price-wrap">
-                <span class="product-price">${{ fmt(clientPrice(Number(p.price), p.markup)) }}</span>
+                <span class="product-price">{{ fmt(clientPrice(Number(p.price), p.markup)) }} TMT</span>
               </div>
               <button class="product-btn" :disabled="p.stock === 0">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                {{ p.stock === 0 ? (lang === 'tk' ? 'Gutardy' : 'Нет') : (lang === 'tk' ? 'Sebede Goş' : 'В корзину') }}
+                {{ p.stock === 0 ? (locale === 'tk' ? 'Gutardy' : 'Нет') : (locale === 'tk' ? 'Sebede Goş' : 'В корзину') }}
               </button>
             </div>
           </NuxtLink>

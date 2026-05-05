@@ -72,7 +72,7 @@ export function useProductCatalog() {
       image:    firstImage(p) ?? p.image ?? '',
       price:    clientPrice(Number(p.price), p.markup ?? 50),
       quantity: 1,
-      seller:   'SilkShop',
+      seller:   'chinaexpress',
       inStock:  p.stock > 0,
       weightG:  p.weightG ?? null,
       options:  Object.keys(options).length ? { ...options } : undefined,

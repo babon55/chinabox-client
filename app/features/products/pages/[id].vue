@@ -55,7 +55,7 @@ function prevImage() { activeIdx.value = (activeIdx.value - 1 + allImages.value.
 function nextImage() { activeIdx.value = (activeIdx.value + 1) % allImages.value.length }
 
 onMounted(() => {
-  const saved = localStorage.getItem('silkshop_lang')
+  const saved = localStorage.getItem('chinaexpress_lang')
   if (saved === 'tk' || saved === 'ru') locale.value = saved
 
   window.addEventListener('keydown', (e) => {
@@ -68,7 +68,7 @@ onMounted(() => {
 
 watch(product, (p) => {
   if (!p) return
-  const key     = 'silkshop_viewed'
+  const key     = 'chinaexpress_viewed'
   const list    = JSON.parse(localStorage.getItem(key) ?? '[]') as string[]
   const updated = [p.id, ...list.filter(i => i !== p.id)].slice(0, 10)
   localStorage.setItem(key, JSON.stringify(updated))
@@ -99,7 +99,7 @@ function addToCart() {
     image:    activeImage.value ?? product.value.imageUrl ?? product.value.image,
     price:    clientPrice.value,
     quantity: qty.value,
-    seller:   'SilkShop',
+    seller:   'chinaexpress',
     weightG:  product.value.weightG ?? null,
     inStock:  product.value.stock > 0,
     options:  Object.keys(selectedOptions.value).length ? { ...selectedOptions.value } : undefined,
@@ -117,7 +117,7 @@ function addRelatedToCart(p: typeof related.value[0]) {
     image:    p.imageUrls?.[0] ?? p.imageUrl ?? p.image,
     price:    Number(p.price) * (1 + (p.markup ?? 50) / 100),
     quantity: 1,
-    seller:   'SilkShop',
+    seller:   'chinaexpress',
     weightG:  p.weightG ?? null,
     inStock:  p.stock > 0,
   })
@@ -130,8 +130,8 @@ function fmt(n: number) { return Number(n).toFixed(2) }
 useHead({
   title: computed(() =>
     product.value
-      ? `${lang.value === 'tk' ? product.value.nameTk : product.value.nameRu} – SilkShop`
-      : 'SilkShop'
+      ? `${lang.value === 'tk' ? product.value.nameTk : product.value.nameRu} – chinaexpress`
+      : 'chinaexpress'
   ),
 })
 </script>
@@ -276,7 +276,7 @@ useHead({
 
             <!-- ── Price — clean, no delivery ── -->
             <div class="price-box">
-              <div class="price-main">${{ fmt(clientPrice) }}</div>
+              <div class="price-main">{{ fmt(clientPrice) }} TMT</div>
               <div class="price-meta">
                 <span class="price-label">{{ lang === 'tk' ? 'Önüm bahasy' : 'Цена товара' }}</span>
                 <span v-if="product.weightG" class="price-weight">{{ product.weightG }}g</span>
@@ -377,7 +377,7 @@ useHead({
                   {{ lang === 'tk' ? p.nameTk : p.nameRu }}
                 </NuxtLink>
                 <div class="rel-footer">
-                  <span class="rel-price">${{ fmt(Number(p.price) * (1 + (p.markup ?? 50) / 100)) }}</span>
+                  <span class="rel-price">{{ fmt(Number(p.price) * (1 + (p.markup ?? 50) / 100)) }} TMT</span>
                   <button
                     :class="['rel-cart-btn', { added: addedRelated === p.id }]"
                     :disabled="p.stock === 0"

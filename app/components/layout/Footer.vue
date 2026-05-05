@@ -16,7 +16,7 @@ const year = computed(() => new Date().getFullYear())
         <div class="footer-brand">
           <div class="brand-logo">
             <div class="logo-icon">🛍️</div>
-            <span class="logo-name">SilkShop</span>
+            <span class="logo-name">chinaexpress</span>
           </div>
           <p class="brand-desc">
             {{ $t('footer.brandDesc') }}
@@ -43,7 +43,7 @@ const year = computed(() => new Date().getFullYear())
           <h4>{{ $t('footer.contact') }}</h4>
           <ul>
             <li>📞 +993 65 000 000</li>
-            <li>📧 info@silkshop.tm</li>
+            <li>📧 info@chinaexpress.tm</li>
             <li>📍 {{ $t('footer.address') }}</li>
           </ul>
         </div>
@@ -53,7 +53,7 @@ const year = computed(() => new Date().getFullYear())
 
     <div class="footer-bottom">
       <div class="footer-inner">
-        <span>© {{ year }} SilkShop. {{ $t('footer.copyright') }}</span>
+        <span>© {{ year }} chinaexpress. {{ $t('footer.copyright') }}</span>
         <span class="made-by">{{ $t('footer.madeWithLove') }}</span>
       </div>
     </div>

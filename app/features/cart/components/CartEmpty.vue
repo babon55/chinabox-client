@@ -26,14 +26,20 @@ const { t } = useCart()
 
 <style scoped>
 .empty-wrap {
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 16px;
-  padding: 80px 40px; text-align: center;
-  background: white; border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 40px;
+  text-align: center;
+  background: white;
+  border-radius: 20px;
   border: 1.5px dashed #E5E7EB;
 }
 .empty-icon {
-  width: 120px; height: 120px; border-radius: 50%;
+  width: 120px; height: 120px;
+  border-radius: 50%;
   background: #F9FAFB;
   display: flex; align-items: center; justify-content: center;
   color: #D1D5DB;
@@ -54,12 +60,46 @@ const { t } = useCart()
   background: linear-gradient(135deg, #0F1117, #2A2D3A);
   color: white; text-decoration: none;
   font-size: 14px; font-weight: 700;
-  transition: all 0.25s; font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: all 0.25s;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   margin-top: 8px;
+  min-height: 48px; /* comfortable tap target */
+  -webkit-tap-highlight-color: transparent;
 }
 .shop-btn:hover {
   background: linear-gradient(135deg, #E8A020, #FF8C00);
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(232,160,32,0.35);
+}
+.shop-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  .empty-wrap {
+    padding: 48px 24px;
+    border-radius: 16px;
+    gap: 12px;
+  }
+
+  .empty-icon {
+    width: 88px; height: 88px;
+    margin-bottom: 4px;
+  }
+  .empty-icon svg { width: 44px; height: 44px; }
+
+  .empty-title { font-size: 20px; }
+  .empty-desc  { font-size: 14px; max-width: 260px; }
+
+  .shop-btn {
+    padding: 13px 24px;
+    font-size: 14px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
+  }
 }
 </style>

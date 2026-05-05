@@ -23,12 +23,22 @@ const { t } = useI18n()
         <NuxtLink to="/products" class="nav-link" active-class="nav-link--active">
           {{ $t('footer.products') }}
         </NuxtLink>
+        <NuxtLink to="/orders" class="nav-link" active-class="nav-link--active">
+          {{ $t('orders.title') }}
+        </NuxtLink>  
         <NuxtLink to="/track" class="nav-link" active-class="nav-link--active">
           {{ $t('track.title') }}
         </NuxtLink>
         <NuxtLink to="/request" class="nav-link" active-class="nav-link--active">
           {{ $t('request.title') }}
         </NuxtLink>
+        <!-- <NuxtLink to="/about" class="nav-link" active-class="nav-link--active">
+          {{ $t('about.title') }}
+        </NuxtLink> -->
+        <!-- <NuxtLink to="/contact" class="nav-link" active-class="nav-link--active">
+          {{ $t('contact.title') }}
+        </NuxtLink> -->
+
       </div>
     </div>
   </nav>

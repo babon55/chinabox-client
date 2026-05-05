@@ -82,7 +82,7 @@ onMounted(() => {
 
 useHead({
   title: computed(() =>
-    `${t('wishlist.title')} (${store.total}) – SilkShop`
+    `${t('wishlist.title')} (${store.total}) – chinaexpress`
   ),
 })
 </script>

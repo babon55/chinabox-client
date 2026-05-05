@@ -71,7 +71,7 @@
                 <!-- Qty + price -->
                 <div class="ocm-item-right">
                   <span class="ocm-item-qty">× {{ item.quantity }}</span>
-                  <span class="ocm-item-price">${{ (item.price * item.quantity).toFixed(2) }}</span>
+                  <span class="ocm-item-price">{{ (item.price * item.quantity).toFixed(2) }} TMT</span>
                 </div>
               </div>
             </div>
@@ -88,13 +88,13 @@
                   {{ homeDelivery ? (locale === 'tk' ? '+ Öýe' : '+ Домой') : '' }}
                 </span>
               </div>
-              <span class="ocm-delivery-cost">${{ deliveryCost.toFixed(2) }}</span>
+              <span class="ocm-delivery-cost">{{ deliveryCost.toFixed(2) }} TMT</span>
             </div>
 
             <!-- ── Total ── -->
             <div class="ocm-total-row">
               <span class="ocm-total-label">{{ locale === 'tk' ? 'Jemi' : 'Итого' }}</span>
-              <span class="ocm-total-price">${{ total.toFixed(2) }}</span>
+              <span class="ocm-total-price">{{ total.toFixed(2) }} TMT</span>
             </div>
           </div>
 

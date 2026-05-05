@@ -72,7 +72,7 @@ const searchHistory = ref<string[]>([])
 
 onMounted(() => {
   // load alongside categories fetch
-  const saved = localStorage.getItem('silkshop_search_history')
+  const saved = localStorage.getItem('chinaexpress_search_history')
   if (saved) searchHistory.value = JSON.parse(saved)
 })
 
@@ -81,12 +81,12 @@ function saveToHistory(query: string) {
   if (!q) return
   const updated = [q, ...searchHistory.value.filter(h => h !== q)].slice(0, 5)
   searchHistory.value = updated
-  localStorage.setItem('silkshop_search_history', JSON.stringify(updated))
+  localStorage.setItem('chinaexpress_search_history', JSON.stringify(updated))
 }
 
 function removeFromHistory(query: string) {
   searchHistory.value = searchHistory.value.filter(h => h !== query)
-  localStorage.setItem('silkshop_search_history', JSON.stringify(searchHistory.value))
+  localStorage.setItem('chinaexpress_search_history', JSON.stringify(searchHistory.value))
 }
 
 </script>
@@ -159,7 +159,7 @@ function removeFromHistory(query: string) {
                 <span class="prod-name">{{ locale === 'tk' ? p.nameTk : p.nameRu }}</span>
                 <span class="prod-cat">{{ locale === 'tk' ? p.category.nameTk : p.category.nameRu }}</span>
               </div>
-              <span class="prod-price">${{ fmt(p.price) }}</span>
+              <span class="prod-price">{{ fmt(p.price) }} TMT</span>
             </div>
           </div>
 

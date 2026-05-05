@@ -66,15 +66,15 @@ export function useOrders() {
       { label: t('pages.orders.title'),     value: total,           icon: '📦' },
       { label: t('orders.statusPending'),   value: active,          icon: '⏳' },
       { label: t('orders.statusDelivered'), value: done,            icon: '✅' },
-      { label: t('orders.total'),           value: `$${fmt(spent)}`, icon: '💰' },
+      { label: t('orders.total'),           value: `${fmt(spent)} TMT`, icon: '💰' },
     ]
   })
 
   return {
+    STATUS_COLORS: STATUS_COLORS,
+    STATUS_STEPS:  STATUS_STEPS,
     STATUS_LABELS,
-    STATUS_COLORS,
     STATUS_OPTIONS,
-    STATUS_STEPS,
     stats,
     fmt,
     fmtDate,

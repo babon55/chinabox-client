@@ -18,13 +18,13 @@ const { locale } = useI18n()
 onMounted(() => {
   cartStore.restoreCart()
   signinStore.restore()
-  const saved = localStorage.getItem('silkshop_lang')
+  const saved = localStorage.getItem('chinaexpress_lang')
   if (saved === 'tk' || saved === 'ru') locale.value = saved as 'tk' | 'ru'
 })
 
 function onLangChange(l: 'tk' | 'ru') {
   locale.value = l
-  localStorage.setItem('silkshop_lang', l)
+  localStorage.setItem('chinaexpress_lang', l)
 }
 
 const searchQuery  = ref('')

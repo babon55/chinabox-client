@@ -15,13 +15,12 @@ const emit = defineEmits<{
 
 const { locale, t } = useI18n()
 
-// Computed for product name based on current language
 const productName = computed(() => {
   return locale.value === 'tk' ? props.item.nameTk : props.item.nameRu
 })
 
 function formatPrice(price: number): string {
-  return `$${price.toFixed(2)}`
+  return `${price.toFixed(2)} TMT`
 }
 
 function dec() {
@@ -50,7 +49,7 @@ function requestRemove() {
     <!-- Product info -->
     <div class="item-info">
       <div class="item-top">
-        <div>
+        <div class="item-top-left">
           <h3 class="item-name">{{ productName }}</h3>
           <p class="item-seller">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -97,7 +96,7 @@ function requestRemove() {
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
             </svg>
-            {{ $t('cartItem.remove') }}
+            <span class="remove-label">{{ $t('cartItem.remove') }}</span>
           </button>
         </div>
       </div>
@@ -126,6 +125,7 @@ function requestRemove() {
   border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
+  flex-shrink: 0;
 }
 .item-emoji { font-size: 44px; }
 .stock-overlay {
@@ -141,6 +141,7 @@ function requestRemove() {
 /* Info */
 .item-info { flex: 1; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .item-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.item-top-left { flex: 1; min-width: 0; }
 
 .item-name {
   font-family: 'Plus Jakarta Sans', sans-serif;
@@ -168,24 +169,27 @@ function requestRemove() {
 }
 .stock-badge.in  { background: rgba(34,197,94,0.1);  color: #16A34A; }
 .stock-badge.out { background: rgba(239,68,68,0.1);   color: #DC2626; }
-.stock-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-}
+.stock-dot { width: 6px; height: 6px; border-radius: 50%; }
 .stock-badge.in .stock-dot  { background: #16A34A; }
 .stock-badge.out .stock-dot { background: #DC2626; }
 
 /* Bottom row */
-.item-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.item-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
 
 .price-wrap { display: flex; align-items: center; gap: 8px; }
 .price-current { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #0F1117; }
 .price-old { font-size: 13px; color: #9CA3AF; text-decoration: line-through; font-family: 'Plus Jakarta Sans', sans-serif; }
-.price-badge { background: #FEF3C7; color: #D97706; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; font-family: 'Plus Jakarta Sans', sans-serif; }
 
 .item-controls { display: flex; align-items: center; gap: 10px; }
 
 .qty-wrap {
-  display: flex; align-items: center; gap: 0;
+  display: flex; align-items: center;
   border: 1.5px solid #E5E7EB; border-radius: 10px; overflow: hidden;
 }
 .qty-btn {
@@ -193,8 +197,11 @@ function requestRemove() {
   background: #F9FAFB; border: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   color: #374151; transition: all 0.15s;
+  /* Larger tap area on touch devices */
+  -webkit-tap-highlight-color: transparent;
 }
 .qty-btn:hover:not(:disabled) { background: #E8A020; color: white; }
+.qty-btn:active:not(:disabled) { background: #E8A020; color: white; transform: scale(0.95); }
 .qty-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .qty-value { min-width: 36px; text-align: center; font-size: 14px; font-weight: 700; color: #0F1117; font-family: 'Plus Jakarta Sans', sans-serif; }
 
@@ -203,15 +210,58 @@ function requestRemove() {
   padding: 6px 12px; border-radius: 8px; border: none;
   font-size: 12px; font-weight: 600; cursor: pointer;
   transition: all 0.2s; font-family: 'Plus Jakarta Sans', sans-serif;
+  -webkit-tap-highlight-color: transparent;
 }
 .action-btn.remove { background: #FEF2F2; color: #DC2626; }
-.action-btn.remove:hover { background: #DC2626; color: white; }
-.action-btn.save { background: #F3F4F6; color: #6B7280; }
-.action-btn.save:hover { background: #E5E7EB; color: #374151; }
+.action-btn.remove:hover  { background: #DC2626; color: white; }
+.action-btn.remove:active { background: #DC2626; color: white; transform: scale(0.97); }
 
-@media (max-width: 600px) {
-  .cart-item { flex-direction: column; }
-  .item-img { width: 100%; height: 120px; }
-  .item-top { flex-direction: column; }
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  .cart-item {
+    gap: 14px;
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .item-img {
+    width: 80px;
+    min-width: 80px;
+    height: 80px;
+    border-radius: 10px;
+  }
+  .item-emoji { font-size: 34px; }
+
+  .item-name { font-size: 14px; }
+
+  .item-seller { font-size: 11px; margin-bottom: 4px; }
+
+  .stock-badge { font-size: 10px; padding: 3px 8px; }
+
+  .price-current { font-size: 17px; }
+  .price-old { font-size: 12px; }
+
+  /* Qty buttons bigger tap targets */
+  .qty-btn { width: 38px; height: 38px; }
+  .qty-value { min-width: 32px; font-size: 13px; }
+
+  .action-btn { padding: 8px 10px; }
+
+  /* Hide label text on very small screens — icon only */
+  .remove-label { display: none; }
+  .action-btn.remove { padding: 8px 10px; border-radius: 8px; }
+}
+
+@media (max-width: 400px) {
+  .item-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .item-controls { width: 100%; justify-content: space-between; }
+
+  /* Show label again now that we have space */
+  .remove-label { display: inline; }
 }
 </style>

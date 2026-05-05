@@ -108,7 +108,7 @@ function resetForm() {
   imageFile.value       = null
 }
 
-useHead({ title: computed(() => `${t('request.title')} – SilkShop`) })
+useHead({ title: computed(() => `${t('request.title')} – chinaexpress`) })
 </script>
 
 <template>

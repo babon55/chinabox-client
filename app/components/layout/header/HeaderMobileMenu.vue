@@ -155,7 +155,7 @@ const initials = computed(() => {
                   <span class="prod-name">{{ locale === 'tk' ? p.nameTk : p.nameRu }}</span>
                   <span class="prod-cat">{{ locale === 'tk' ? p.category.nameTk : p.category.nameRu }}</span>
                 </div>
-                <span class="prod-price">${{ fmt(p.price) }}</span>
+                <span class="prod-price">{{ fmt(p.price) }} TMT</span>
               </div>
             </div>
 

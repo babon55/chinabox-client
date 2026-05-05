@@ -77,12 +77,12 @@
               <span v-for="(val, key) in line.options" :key="key" class="opt-chip">{{ val }}</span>
             </div>
           </div>
-          <div class="item-price">${{ fmt(Number(line.unitPrice) * line.qty) }}</div>
+          <div class="item-price">{{ fmt(Number(line.unitPrice) * line.qty) }} TMT</div>
         </div>
       </div>
       <div class="order-total">
         <span>{{ $t('cart.total') }}</span>
-        <strong>${{ fmt(orderTotal) }}</strong>
+        <strong>{{ fmt(orderTotal) }} TMT</strong>
       </div>
     </div>
 

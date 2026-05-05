@@ -49,7 +49,7 @@
       </NuxtLink>
       <div class="prod-footer">
         <div class="prod-price-wrap">
-          <div class="prod-price">${{ fmt(clientPrice(product.price, product.markup)) }}</div>
+          <div class="prod-price">{{ fmt(clientPrice(product.price, product.markup)) }} TMT</div>
           <div v-if="product.weightG" class="prod-weight">{{ product.weightG }}g</div>
         </div>
         <button

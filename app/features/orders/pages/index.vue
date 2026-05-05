@@ -22,7 +22,8 @@
     <div class="page-body">
 
       <!-- Not logged in -->
-      <OrdersLoginPrompt v-if="!signinStore.isLoggedIn" />
+       <div v-if="restoring" class="loading-wrap"><div class="spinner" /></div>
+      <OrdersLoginPrompt v-else-if="!signinStore.isLoggedIn" />
 
       <template v-else>
 
@@ -88,8 +89,12 @@ const { stats, filteredOrders } = useOrders()
 const filterStatus   = ref('ALL')
 const visibleOrders  = computed(() => filteredOrders(filterStatus.value))
 
+// orders/pages/index.vue <script setup>
+const restoring = ref(true)
+
 onMounted(async () => {
   await signinStore.restore()
+  restoring.value = false
   if (signinStore.isLoggedIn) store.fetchOrders()
 })
 

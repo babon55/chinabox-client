@@ -30,7 +30,7 @@ const trustItems = computed(() => [
           <line x1="12" y1="22.08" x2="12" y2="12"/>
         </svg>
       </div>
-      <span class="side-logo-name">SilkShop</span>
+      <span class="side-logo-name">chinaexpress</span>
     </NuxtLink>
 
     <!-- Hero -->
@@ -69,7 +69,7 @@ const trustItems = computed(() => [
       <div class="floating-img">🎧</div>
       <div class="floating-info">
         <span class="floating-name">{{ currentLang === 'tk' ? 'Simsiz Gulaklyk' : 'Беспроводные наушники' }}</span>
-        <span class="floating-price">$24.99</span>
+        <span class="floating-price">500 TMT</span>
       </div>
       <div class="floating-badge">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>

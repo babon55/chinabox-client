@@ -359,7 +359,6 @@ declare module 'vue-i18n' {
       orders: string;
       customers: string;
       settings: string;
-      analytics: string;
       logout: string;
     };
   }

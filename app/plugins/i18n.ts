@@ -5,7 +5,7 @@ import ruMessages from '../../locales/ru.json';
 
 const getLocale = (): 'tk' | 'ru' => {
   if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem('silkshop_lang');
+    const saved = localStorage.getItem('chinaexpress_lang');
     if (saved === 'tk' || saved === 'ru') return saved;
   }
   return 'tk';
@@ -30,7 +30,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   // Only persist on client
   if (import.meta.client) {
     watchEffect(() => {
-      localStorage.setItem('silkshop_lang', i18n.global.locale.value);
+      localStorage.setItem('chinaexpress_lang', i18n.global.locale.value);
     });
 
     // Clean up when app unmounts

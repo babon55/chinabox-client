@@ -1,20 +1,16 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { locale } = useI18n()
-
-const emit = defineEmits<{ (e: 'update:current-lang', lang: 'tk' | 'ru'): void }>()
 
 const langs = [
   { code: 'tk' as const, flag: '🇹🇲', label: 'TK' },
   { code: 'ru' as const, flag: '🇷🇺', label: 'RU' },
 ]
 
-const currentLang = computed(() => locale.value)
-
 function changeLang(code: 'tk' | 'ru') {
-  emit('update:current-lang', code)
+  locale.value = code
+  localStorage.setItem('chinaexpress_lang', code)
 }
 </script>
 
@@ -27,7 +23,7 @@ function changeLang(code: 'tk' | 'ru') {
           <button
             v-for="lang in langs"
             :key="lang.code"
-            :class="['lang-btn', { active: currentLang === lang.code }]"
+            :class="['lang-btn', { active: locale === lang.code }]"
             @click="changeLang(lang.code)"
           >{{ lang.flag }} {{ lang.label }}</button>
         </div>

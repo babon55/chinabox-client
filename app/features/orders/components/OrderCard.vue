@@ -22,7 +22,7 @@
         >
           {{ STATUS_LABELS[order.status] ?? order.status }}
         </div>
-        <div class="oc-total">${{ fmt(order.total) }}</div>
+        <div class="oc-total">{{ fmt(order.total) }} TMT</div>
         <div :class="['oc-chevron', { open: expanded }]">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <polyline points="6 9 12 15 18 9"/>
@@ -96,7 +96,7 @@
             </div>
             <div class="oc-item-right">
               <div class="oc-item-qty">× {{ line.qty }}</div>
-              <div class="oc-item-price">${{ fmt(Number(line.unitPrice) * line.qty) }}</div>
+              <div class="oc-item-price">{{ fmt(Number(line.unitPrice) * line.qty) }} TMT</div>
             </div>
           </div>
         </div>
@@ -122,11 +122,11 @@
           </div>
           <div class="oc-summary-row">
             <span>{{ $t('cart.items') }}</span>
-            <span>${{ fmt(order.total) }}</span>
+            <span>{{ fmt(order.total) }} TMT</span>
           </div>
           <div class="oc-summary-total">
             <span>{{ $t('orders.total') }}</span>
-            <span class="oc-total-val">${{ fmt(order.total) }}</span>
+            <span class="oc-total-val">{{ fmt(order.total) }} TMT</span>
           </div>
         </div>
 

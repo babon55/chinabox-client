@@ -5,8 +5,8 @@ import { useRuntimeConfig } from '#app'
 
 export type SelectedOptions = Record<string, string>
 
-const SIMPLE_RATE = 7
-const FAST_RATE   = 11
+const SIMPLE_RATE = 60
+const FAST_RATE   = 140
 
 async function refreshCustomerToken(apiBase?: string): Promise<string | null> {
   const refreshToken = localStorage.getItem('customer_refresh_token')
@@ -41,16 +41,17 @@ export const useCartStore = defineStore('cart', () => {
   const removeConfirmItem = ref<CartItem | null>(null)
   const deliveryType      = ref<'simple' | 'fast'>('simple')
   const homeDelivery      = ref(false)
+  const router = useRouter()
 
   function restoreCart() {
     if (!import.meta.client) return
     try {
-      const raw = localStorage.getItem('silkshop_cart')
+      const raw = localStorage.getItem('chinaexpress_cart')
       if (raw) items.value = JSON.parse(raw).map((item: CartItem) => ({
         ...item,
         price: Number(item.price),
       }))
-      const savedDelivery = localStorage.getItem('silkshop_delivery')
+      const savedDelivery = localStorage.getItem('chinaexpress_delivery')
       if (savedDelivery) {
         const d = JSON.parse(savedDelivery)
         deliveryType.value = d.type ?? 'simple'
@@ -60,12 +61,12 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   function _save() {
-    if (import.meta.client) localStorage.setItem('silkshop_cart', JSON.stringify(items.value))
+    if (import.meta.client) localStorage.setItem('chinaexpress_cart', JSON.stringify(items.value))
   }
 
   function _saveDelivery() {
     if (import.meta.client)
-      localStorage.setItem('silkshop_delivery', JSON.stringify({
+      localStorage.setItem('chinaexpress_delivery', JSON.stringify({
         type: deliveryType.value,
         home: homeDelivery.value,
       }))
@@ -92,7 +93,7 @@ export const useCartStore = defineStore('cart', () => {
   const deliveryCost = computed(() =>
     items.value.length === 0 ? 0 :
     totalWeightKg.value * (deliveryType.value === 'fast' ? FAST_RATE : SIMPLE_RATE)
-    + (homeDelivery.value ? 1 : 0)
+    + (homeDelivery.value ? 20 : 0)
   )
 
   const total = computed(() => subtotal.value + deliveryCost.value)
@@ -152,7 +153,7 @@ export const useCartStore = defineStore('cart', () => {
     const config = useRuntimeConfig()
     const API    = config.public.apiBase
     let token    = localStorage.getItem('customer_access_token')
-    if (!token) { navigateTo('/signin'); return false }
+    if (!token) { router.push('/signin'); return false }
 
     const invalidItems = items.value.filter(i => !i.id || i.id.trim() === '')
     if (invalidItems.length) {
@@ -186,7 +187,7 @@ export const useCartStore = defineStore('cart', () => {
       const status = e?.response?.status ?? e?.status
       if (status === 401) {
         const newToken = await refreshCustomerToken(API)
-        if (!newToken) { navigateTo('/signin'); return false }
+        if (!newToken) { router.push('/signin'); return false }
         try {
           const order = await $fetch<{ id: string }>(`${API}/customer/orders`, {
             method: 'POST', headers: { Authorization: `Bearer ${newToken}` }, body: orderBody,

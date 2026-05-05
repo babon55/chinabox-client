@@ -32,7 +32,7 @@ export function useWishlist() {
       price:    item.price,
       weightG:  item.weightG ?? null,
       quantity: 1,
-      seller:   'SilkShop',
+      seller:   'chinaexpress',
       inStock:  item.stock > 0,
     })
     store.remove(item.id)

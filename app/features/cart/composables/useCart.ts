@@ -42,7 +42,7 @@ export function useCart() {
   }))
 
   function formatPrice(amount: number): string {
-    return `$${amount.toFixed(2)}`
+    return `${amount.toFixed(2)} TMT`
   }
 
   function discountPercent(price: number, oldPrice: number): number {

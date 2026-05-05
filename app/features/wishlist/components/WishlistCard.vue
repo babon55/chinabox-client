@@ -19,7 +19,7 @@
     <div class="card-body">
       <div class="card-cat">{{ locale === 'tk' ? item.category.nameTk : item.category.nameRu }}</div>
       <NuxtLink :to="`/products/${item.id}`" class="card-name">{{ name }}</NuxtLink>
-      <div class="card-price">${{ fmt(item.price) }}</div>
+      <div class="card-price">{{ fmt(item.price) }} TMT</div>
       <div class="added-date">🕐 {{ fmtDate(item.addedAt, locale) }}</div>
 
       <div class="card-actions">

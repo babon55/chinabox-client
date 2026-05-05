@@ -13,18 +13,18 @@ const currentLang = computed<Lang>({
   get: () => locale.value as Lang,
   set: (val) => {
     locale.value = val
-    if (process.client) localStorage.setItem('silkshop_lang', val)
+    if (process.client) localStorage.setItem('chinaexpress_lang', val)
   },
 })
 
 onMounted(() => {
-  const saved = localStorage.getItem('silkshop_lang') as Lang | null
+  const saved = localStorage.getItem('chinaexpress_lang') as Lang | null
   if (saved === 'tk' || saved === 'ru') locale.value = saved
 })
 
 useHead({
   title: computed(() =>
-    currentLang.value === 'tk' ? 'Giriş – SilkShop' : 'Вход – SilkShop'
+    currentLang.value === 'tk' ? 'Giriş – chinaexpress' : 'Вход – chinaexpress'
   ),
 })
 

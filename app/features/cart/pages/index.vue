@@ -29,7 +29,7 @@
                 <polyline points="3 6 5 6 21 6"/>
                 <path d="M19 6l-1 14H6L5 6"/>
               </svg>
-              {{ cartT.clearCart }}
+              <span class="clear-btn-label">{{ cartT.clearCart }}</span>
             </button>
           </div>
         </div>
@@ -103,7 +103,7 @@ const { t: cartT }       = useCart()
 const showClearConfirm   = ref(false)
 
 useHead({
-  title: computed(() => `${t('cart.title')} (${store.totalItems}) – SilkShop`),
+  title: computed(() => `${t('cart.title')} (${store.totalItems}) – chinaexpress`),
 })
 
 function handleClearCart() {
@@ -119,40 +119,155 @@ function handleClearCart() {
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-/* Header */
-.page-header { background: white; border-bottom: 1px solid #e5e7eb; padding: 20px 0; }
-.page-header-inner { max-width: 1280px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; gap: 10px; }
-.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #9ca3af; }
-.breadcrumb-link { color: #9ca3af; text-decoration: none; transition: color 0.2s; }
+/* ── Header ── */
+.page-header {
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.page-header-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #9ca3af;
+}
+.breadcrumb-link {
+  color: #9ca3af;
+  text-decoration: none;
+  transition: color 0.2s;
+}
 .breadcrumb-link:hover { color: #e8a020; }
 .breadcrumb-sep { color: #d1d5db; }
 .breadcrumb-current { color: #374151; font-weight: 600; }
-.header-right { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-.page-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #0f1117; display: flex; align-items: center; gap: 12px; }
-.item-count { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; color: #9ca3af; }
-.header-actions { display: flex; align-items: center; gap: 12px; }
 
-.lang-toggle { display: flex; gap: 4px; background: #f3f4f6; border-radius: 50px; padding: 3px; }
-.lang-pill { padding: 5px 12px; border-radius: 50px; border: none; background: transparent; font-size: 12px; font-weight: 600; color: #6b7280; cursor: pointer; transition: all 0.2s; font-family: 'Plus Jakarta Sans', sans-serif; }
+.header-right {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f1117;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.item-count {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #9ca3af;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.lang-toggle {
+  display: flex;
+  gap: 4px;
+  background: #f3f4f6;
+  border-radius: 50px;
+  padding: 3px;
+}
+.lang-pill {
+  padding: 5px 12px;
+  border-radius: 50px;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
 .lang-pill.active { background: #0f1117; color: white; }
 
-.clear-btn { display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; border: 1.5px solid #fecaca; background: #fef2f2; color: #dc2626; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Plus Jakarta Sans', sans-serif; }
+.clear-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1.5px solid #fecaca;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  white-space: nowrap;
+}
 .clear-btn:hover { background: #dc2626; color: white; border-color: #dc2626; }
 
-/* Body */
-.cart-body { padding: 32px 0; }
-.cart-inner { max-width: 1280px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: 1fr 380px; gap: 28px; align-items: start; }
+/* ── Body ── */
+.cart-body { padding: 32px 0 48px; }
+.cart-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 28px;
+  align-items: start;
+}
 .empty-full { grid-column: 1 / -1; }
 .items-col { display: flex; flex-direction: column; }
 .items-list { display: flex; flex-direction: column; gap: 16px; }
 
-/* Transitions */
+/* ── Transitions ── */
 .item-list-enter-active { transition: all 0.4s ease; }
 .item-list-leave-active { transition: all 0.3s ease; }
 .item-list-enter-from   { opacity: 0; transform: translateX(-20px); }
 .item-list-leave-to     { opacity: 0; transform: translateX(20px); height: 0; margin: 0; }
 
-@media (max-width: 1024px) { .cart-inner { grid-template-columns: 1fr 340px; } }
-@media (max-width: 768px)  { .cart-inner { grid-template-columns: 1fr; } }
-@media (max-width: 480px)  { .cart-inner { padding: 0 16px; } .page-header-inner { padding: 0 16px; } }
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .cart-inner { grid-template-columns: 1fr 340px; }
+}
+
+@media (max-width: 768px) {
+  /* Single column: items on top, summary below */
+  .cart-inner {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .cart-body { padding: 20px 0 48px; }
+}
+
+@media (max-width: 640px) {
+  .page-header { padding: 14px 0; }
+  .page-header-inner { padding: 0 16px; gap: 8px; }
+  .breadcrumb { font-size: 12px; }
+  .header-right { gap: 8px; }
+  .page-title { font-size: 20px; gap: 8px; }
+  .item-count { font-size: 12px; }
+  .header-actions { gap: 8px; }
+  .lang-pill { padding: 4px 10px; font-size: 11px; }
+  .clear-btn-label { display: none; }
+  .clear-btn { padding: 8px 10px; border-radius: 8px; }
+}
+
+@media (max-width: 480px) {
+  .cart-inner { padding: 0 12px; }
+  .page-header-inner { padding: 0 12px; }
+}
 </style>

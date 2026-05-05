@@ -84,7 +84,7 @@ function fmt(n: number) { return Number(n).toFixed(2) }
               </div>
               <div class="prod-text">
                 <div class="prod-name">{{ locale === 'tk' ? product.nameTk : product.nameRu }}</div>
-                <div class="prod-price">${{ fmt(product.price) }}</div>
+                <div class="prod-price">{{ fmt(product.price) }} TMT</div>
               </div>
             </div>
             <button class="close-btn" :aria-label="$t('common.close')" @click="emit('close')">

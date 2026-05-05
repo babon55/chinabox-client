@@ -19,14 +19,14 @@ export const useWishlistStore = defineStore('wishlist', () => {
   function restore() {
     if (!import.meta.client) return
     try {
-      const raw = localStorage.getItem('silkshop_wishlist')
+      const raw = localStorage.getItem('chinaexpress_wishlist')
       if (raw) items.value = JSON.parse(raw)
     } catch {}
   }
 
   function _save() {
     if (import.meta.client)
-      localStorage.setItem('silkshop_wishlist', JSON.stringify(items.value))
+      localStorage.setItem('chinaexpress_wishlist', JSON.stringify(items.value))
   }
 
   const total    = computed(() => items.value.length)

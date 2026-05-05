@@ -300,7 +300,7 @@ async function shuffleProducts(): Promise<void> {
   setTimeout(() => { isShuffling.value = false }, 600)
 }
 
-useHead({ title: computed(() => `${t('pages.products.title')} – SilkShop`) })
+useHead({ title: computed(() => `${t('pages.products.title')} – chinaexpress`) })
 </script>
 
 <style scoped>

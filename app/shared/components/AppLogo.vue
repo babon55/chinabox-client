@@ -18,7 +18,7 @@ defineProps<{
       </svg>
     </div>
     <div class="logo-text">
-      <span :class="['logo-main', { light: dark }]">SilkShop</span>
+      <span :class="['logo-main', { light: dark }]">chinaexpress</span>
       <span class="logo-sub">
         {{ currentLang === 'tk' ? 'Hytaý Bazary' : 'Китайский рынок' }}
       </span>

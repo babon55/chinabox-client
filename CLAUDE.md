@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **Nuxt 4 e-commerce application** (SilkShop) built with a **feature-based architecture**. The project uses:
+This is a **Nuxt 4 e-commerce application** (chinaexpress) built with a **feature-based architecture**. The project uses:
 - **Nuxt 4** with Vue 3 Composition API
 - **Pinia** for state management
 - **@nuxt/ui** for UI components
@@ -106,7 +106,7 @@ Example: `app/features/products/pages/index.vue` shows:
 ### Internationalization
 
 Bilingual support for Turkish (`tk`) and Russian (`ru`):
-- Language stored in `localStorage` key `silkshop_lang`
+- Language stored in `localStorage` key `chinaexpress_lang`
 - Current language tracked in reactive `lang` ref
 - Template conditionals: `lang === 'tk' ? 'Türkmen' : 'Русский'`
 
@@ -165,7 +165,7 @@ Global components used in layouts are in `app/components/layout/header/` subdire
 
 5. **API base**: Hardcoded as `http://localhost:3001/api/v1`. For production, this should be configurable via environment variables (not yet implemented).
 
-6. **Cart persistence**: Cart is stored in `localStorage` under `silkshop_cart`. The cart store restores on app mount (see `Header.vue` calling `cartStore.restoreCart()`).
+6. **Cart persistence**: Cart is stored in `localStorage` under `chinaexpress_cart`. The cart store restores on app mount (see `Header.vue` calling `cartStore.restoreCart()`).
 
 7. **Authentication**: Token-based with `customer_access_token` and `customer_refresh_token` in localStorage. The `refreshCustomerToken()` helper in `cart.store.ts` handles 401 retry logic.
 

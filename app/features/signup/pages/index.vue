@@ -9,7 +9,7 @@ const currentLang = ref<Lang>('tk')
 
 useHead({
   title: computed(() =>
-    currentLang.value === 'tk' ? 'Hasap Açmak – SilkShop' : 'Регистрация – SilkShop'
+    currentLang.value === 'tk' ? 'Hasap Açmak – chinaexpress' : 'Регистрация – chinaexpress'
   ),
 })
 

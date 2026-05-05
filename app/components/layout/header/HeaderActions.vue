@@ -109,7 +109,7 @@ function handleLogout() { dropdownOpen.value = false; emit('logout') }
 .header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
 /* desktop-only elements hidden on mobile */
-@media (max-width: 768px) { .desktop-only { display: none !important; } }
+
 
 .btn-signin { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 10px; border: 2px solid #E5E7EB; background: white; color: #0F1117; font-size: 13px; font-weight: 600; text-decoration: none; transition: all 0.2s; white-space: nowrap; font-family: 'Plus Jakarta Sans', sans-serif; }
 .btn-signin:hover { border-color: #E8A020; color: #E8A020; }
@@ -175,4 +175,9 @@ function handleLogout() { dropdownOpen.value = false; emit('logout') }
 
 .drop-enter-active, .drop-leave-active { transition: opacity .15s, transform .15s; }
 .drop-enter-from, .drop-leave-to { opacity: 0; transform: translateY(-6px) scale(.97); }
+
+@media (max-width: 768px) {
+  .desktop-only { display: none !important; }
+  .cart-btn { display: none; }
+}
 </style>

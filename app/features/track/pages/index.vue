@@ -77,7 +77,7 @@ onMounted(() => {
   }
 })
 
-useHead({ title: computed(() => `${t('pages.track.title')} – SilkShop`) })
+useHead({ title: computed(() => `${t('pages.track.title')} – chinaexpress`) })
 </script>
 
 <style scoped>

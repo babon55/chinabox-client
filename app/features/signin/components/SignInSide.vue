@@ -27,12 +27,12 @@ const steps = computed(() => [
 
 const testimonial = computed(() => ({
   tk: {
-    text: '"SilkShop bilen haryt satyn almak örän aňsat boldy. Maslahat berýärin!"',
+    text: '"chinaexpress bilen haryt satyn almak örän aňsat boldy. Maslahat berýärin!"',
     name: 'Merdan A.',
     role: 'Müşderi',
   },
   ru: {
-    text: '"С SilkShop покупать товары стало очень просто. Рекомендую!"',
+    text: '"С chinaexpress покупать товары стало очень просто. Рекомендую!"',
     name: 'Мердан А.',
     role: 'Покупатель',
   },
@@ -55,7 +55,7 @@ const testimonial = computed(() => ({
           <line x1="12" y1="22.08" x2="12" y2="12"/>
         </svg>
       </div>
-      <span class="side-logo-name">SilkShop</span>
+      <span class="side-logo-name">chinaexpress</span>
     </NuxtLink>
 
     <!-- Hero -->
