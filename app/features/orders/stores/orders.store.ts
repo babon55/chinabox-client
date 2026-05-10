@@ -14,7 +14,9 @@ export const useOrdersStore = defineStore('orders', () => {
   // ── Helpers ────────────────────────────────────────────────────────────────
   function getToken(): string {
     const signinStore = useSigninStore()
-    return signinStore.accessToken ?? localStorage.getItem('customer_access_token') ?? ''
+    return signinStore.accessToken
+      ?? (import.meta.client ? localStorage.getItem('customer_access_token') : null)
+      ?? ''
   }
 
   // ── Actions ────────────────────────────────────────────────────────────────

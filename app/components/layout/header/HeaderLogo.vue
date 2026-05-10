@@ -7,7 +7,7 @@ const { t } = useI18n()
 <template>
   <NuxtLink to="/" class="logo">
     <div class="logo-icon">
-      <img src="" class="logo-icon"></img>
+      <img src="/images/logo.png" alt="ChinaExpress" class="logo-img" />
     </div>
     <div class="logo-text">
       <span class="logo-main">ChinaExpress</span>
@@ -30,19 +30,20 @@ const { t } = useI18n()
 .logo-icon {
   width: 52px;
   height: 52px;
-  background: linear-gradient(135deg, #E8A020, #FF8C00);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  box-shadow: 0 4px 14px rgba(232,160,32,0.4);
-  transition: transform 0.2s, box-shadow 0.2s;
-  img {
-    padding-bottom: 8px;
-  }
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: transform 0.2s;
 }
 
+.logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
 .logo:hover .logo-icon {
   transform: rotate(0deg) scale(1.2);
   box-shadow: 0 6px 20px rgba(232,160,32,0.5);

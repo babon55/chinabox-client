@@ -6,7 +6,8 @@ const route     = useRoute()
 
 const emit = defineEmits<{ 
   (e: 'open-menu'): void
-  (e: 'close-menu'): void  // ← add this
+  (e: 'close-menu'): void
+  (e: 'toggle-menu'): void
 }>()
 
 function isActive(path: string, exact = false) {
@@ -15,70 +16,78 @@ function isActive(path: string, exact = false) {
 </script>
 
 <template>
-  <Teleport to='body'>
+  <Teleport to="body">
     <nav class="bottom-nav">
 
-    <NuxtLink to="/" @click="emit('close-menu')" :class="['nav-item', { active: isActive('/', true) }]">
-      <div class="icon-wrap">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-          <polyline points="9 22 9 12 15 12 15 22"/>
-        </svg>
-      </div>
-      <span class="nav-label">{{ $t('footer.home') }}</span>
-      <div v-if="isActive('/', true)" class="active-dot" />
-    </NuxtLink>
+      <!-- Home -->
+      <NuxtLink to="/" @click="emit('close-menu')" :class="['nav-item', { active: isActive('/', true) }]">
+        <div class="icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+        </div>
+        <span class="nav-label">{{ $t('footer.home') }}</span>
+        <div v-if="isActive('/', true)" class="active-dot" />
+      </NuxtLink>
 
-    <NuxtLink to="/products" @click="emit('close-menu')" :class="['nav-item', { active: isActive('/products') }]">
-      <div class="icon-wrap">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-        </svg>
-      </div>
-      <span class="nav-label">{{ $t('footer.products') }}</span>
-      <div v-if="isActive('/products')" class="active-dot" />
-    </NuxtLink>
+      <!-- Products — grid icon (browse/shop feeling) -->
+      <NuxtLink to="/products" @click="emit('close-menu')" :class="['nav-item', { active: isActive('/products') }]">
+        <div class="icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3"  y="3"  width="7" height="7" rx="1"/>
+            <rect x="14" y="3"  width="7" height="7" rx="1"/>
+            <rect x="14" y="14" width="7" height="7" rx="1"/>
+            <rect x="3"  y="14" width="7" height="7" rx="1"/>
+          </svg>
+        </div>
+        <span class="nav-label">{{ $t('footer.products') }}</span>
+        <div v-if="isActive('/products')" class="active-dot" />
+      </NuxtLink>
 
-    <NuxtLink to="/cart" @click="emit('close-menu')" :class="['nav-item', { active: isActive('/cart') }]">
-      <div class="icon-wrap cart-wrap">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-          <line x1="3" y1="6" x2="21" y2="6"/>
-          <path d="M16 10a4 4 0 0 1-8 0"/>
-        </svg>
-        <Transition name="badge">
-          <span v-if="cartStore.totalItems > 0" class="cart-badge">
-            {{ cartStore.totalItems > 99 ? '99+' : cartStore.totalItems }}
-          </span>
-        </Transition>
-      </div>
-      <span class="nav-label">{{ $t('footer.cart') }}</span>
-      <div v-if="isActive('/cart')" class="active-dot" />
-    </NuxtLink>
+      <!-- Cart -->
+      <NuxtLink to="/cart" @click="emit('close-menu')" :class="['nav-item', { active: isActive('/cart') }]">
+        <div class="icon-wrap cart-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          <Transition name="badge">
+            <span v-if="cartStore.totalItems > 0" class="cart-badge">
+              {{ cartStore.totalItems > 99 ? '99+' : cartStore.totalItems }}
+            </span>
+          </Transition>
+        </div>
+        <span class="nav-label">{{ $t('footer.cart') }}</span>
+        <div v-if="isActive('/cart')" class="active-dot" />
+      </NuxtLink>
 
-    <NuxtLink to="/orders" @click="emit('close-menu')" :class="['nav-item', { active: isActive('/orders') }]">
-      <div class="icon-wrap">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
-          <path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/>
-        </svg>
-      </div>
-      <span class="nav-label">{{ $t('auth.orders') }}</span>
-      <div v-if="isActive('/orders')" class="active-dot" />
-    </NuxtLink>
+      <!-- Orders — original icon -->
+      <NuxtLink to="/orders" @click="emit('close-menu')" :class="['nav-item', { active: isActive('/orders') }]">
+        <div class="icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+            <path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/>
+          </svg>
+        </div>
+        <span class="nav-label">{{ $t('auth.orders') }}</span>
+        <div v-if="isActive('/orders')" class="active-dot" />
+      </NuxtLink>
 
-    <button class="nav-item" @click="emit('open-menu')">
-      <div class="icon-wrap">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="3" y1="6"  x2="21" y2="6"/>
-          <line x1="3" y1="12" x2="21" y2="12"/>
-          <line x1="3" y1="18" x2="21" y2="18"/>
-        </svg>
-      </div>
-      <span class="nav-label">{{ $t('header.categories') }}</span>
-    </button>
+      <!-- Menu toggle -->
+      <button class="nav-item" @click="emit('toggle-menu')">
+        <div class="icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6"  x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </div>
+        <span class="nav-label">{{ $t('header.categories') }}</span>
+      </button>
 
-  </nav>
+    </nav>
   </Teleport>
 </template>
 

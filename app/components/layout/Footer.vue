@@ -16,7 +16,7 @@ const year = computed(() => new Date().getFullYear())
         <div class="footer-brand">
           <div class="brand-logo">
             <div class="logo-icon">🛍️</div>
-            <span class="logo-name">chinaexpress</span>
+            <span class="logo-name">ChinaExpress</span>
           </div>
           <p class="brand-desc">
             {{ $t('footer.brandDesc') }}
@@ -42,8 +42,8 @@ const year = computed(() => new Date().getFullYear())
         <div class="footer-links">
           <h4>{{ $t('footer.contact') }}</h4>
           <ul>
-            <li>📞 +993 65 000 000</li>
-            <li>📧 info@chinaexpress.tm</li>
+            <li>📞 +993 62 160072</li>
+            <li>📧 babanazarjumadurdyyev@gmail.com</li>
             <li>📍 {{ $t('footer.address') }}</li>
           </ul>
         </div>

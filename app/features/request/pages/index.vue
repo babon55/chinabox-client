@@ -11,7 +11,7 @@ const form = ref({
   nameRu:       '',
   description:  '',
   contactName:  '',
-  contactPhone: '',
+  contactPhone: '+993 ',
   contactEmail: '',
 })
 
@@ -33,6 +33,19 @@ function onFileChange(e: Event) {
   imageFile.value    = file
   imagePreview.value = URL.createObjectURL(file)
   errors.value.image = ''
+}
+
+function onPhoneKeydown(e: KeyboardEvent) {
+  const prefix = '+993 '
+  const input = e.target as HTMLInputElement
+  // Block backspace/delete if it would eat into the prefix
+  if (
+    (e.key === 'Backspace' || e.key === 'Delete') &&
+    input.selectionStart !== null &&
+    input.selectionStart <= prefix.length
+  ) {
+    e.preventDefault()
+  }
 }
 
 function clearImage() {
@@ -106,6 +119,7 @@ function resetForm() {
   form.value.description = ''
   imagePreview.value    = null
   imageFile.value       = null
+  form.value.contactPhone = '+993 '
 }
 
 useHead({ title: computed(() => `${t('request.title')} – chinaexpress`) })
@@ -241,7 +255,8 @@ useHead({ title: computed(() => `${t('request.title')} – chinaexpress`) })
                 <input
                   v-model="form.contactPhone"
                   class="field-input"
-                  placeholder="+993 65 xxxxxx"
+                  placeholder="+993 xx xxxxxx"
+                  @keydown="onPhoneKeydown"
                 />
               </div>
               <div class="field">
@@ -288,7 +303,7 @@ useHead({ title: computed(() => `${t('request.title')} – chinaexpress`) })
             <div class="contact-card">
               <h3>{{ $t('request.questions') }}</h3>
               <p>{{ $t('request.contactUs') }}</p>
-              <a href="tel:+99365000000" class="contact-link">{{ $t('footer.phone') }}</a>
+              <a href="tel:+99362160072" class="contact-link">📞 +993 62160072</a>
             </div>
           </div>
 

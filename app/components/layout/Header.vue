@@ -58,8 +58,8 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 
   <!-- Mobile bottom nav -->
   <BottomNav 
-    @open-menu="sheetOpen = true" 
     @close-menu="sheetOpen = false"
+    @toggle-menu="sheetOpen = !sheetOpen"
   />
 
   <!-- Mobile bottom sheet -->

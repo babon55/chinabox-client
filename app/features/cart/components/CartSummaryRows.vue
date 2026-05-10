@@ -5,16 +5,14 @@
       <span>{{ formatPrice(store.subtotal) }}</span>
     </div>
 
-    <div class="summary-row">
+    <div class="summary-row" v-if="store.deliveryCost > 0">
       <span>
         {{ t.shipping }}
         <span class="weight-hint" v-if="store.totalWeightKg > 0">
           ({{ store.totalWeightKg.toFixed(2) }}kg)
         </span>
       </span>
-      <span :class="{ 'free-label': store.deliveryCost === 0 }">
-        {{ store.deliveryCost === 0 ? t.shippingFree : formatPrice(store.deliveryCost) }}
-      </span>
+      <span>{{ formatPrice(store.deliveryCost) }}</span>
     </div>
 
     <div class="summary-row total">
@@ -40,5 +38,4 @@ const { t, formatPrice } = useCart()
 .summary-row.total span { color: #0f1117; font-weight: 800; }
 .summary-row.total span:last-child { font-family: 'Playfair Display', serif; font-size: 22px; color: #e8a020; }
 .weight-hint { font-size: 11px; color: #d1d5db; font-weight: 400; }
-.free-label  { color: #16a34a !important; }
 </style>

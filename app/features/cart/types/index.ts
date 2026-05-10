@@ -57,4 +57,6 @@ export interface CartTranslations {
   promoApply:         string
   clearCart:          string
   estimatedDelivery:  string
+  deliveryType:       string
+  days:               string
 }

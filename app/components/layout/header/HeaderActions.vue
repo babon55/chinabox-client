@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
-interface User { id: string; name: string; email: string; phone: string }
+interface User { id: string; name: string; email: string; phone: string | null; address?: string | null }
 
 const props = defineProps<{
   isLoggedIn:  boolean
@@ -42,51 +42,15 @@ function handleLogout() { dropdownOpen.value = false; emit('logout') }
       <NuxtLink to="/signup" class="btn-signup desktop-only">
         {{ $t('auth.signup.register') }}
       </NuxtLink>
-    </template>
 
-    <!-- Logged in: user dropdown -->
-    <template v-else>
-      <div class="user-wrap" ref="dropdownRef">
-        <button class="user-btn" @click.stop="dropdownOpen = !dropdownOpen">
-          <div class="user-avatar">{{ initials }}</div>
-          <span class="user-name desktop-only">{{ user?.name?.split(' ')[0] }}</span>
-          <svg class="chevron desktop-only" :class="{ open: dropdownOpen }" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
-        </button>
-
-        <Transition name="drop">
-          <div v-if="dropdownOpen" class="dropdown">
-            <NuxtLink to="/profile" class="dd-header" @click="dropdownOpen = false">
-              <div class="dd-avatar">{{ initials }}</div>
-              <div>
-                <div class="dd-name">{{ user?.name }}</div>
-                <div class="dd-email">{{ user?.email }}</div>
-                <div class="dd-edit-hint">Edit profile →</div>
-              </div>
-            </NuxtLink>
-            <div class="dd-divider" />
-            <NuxtLink to="/orders" class="dd-item" @click="dropdownOpen = false">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/></svg>
-              {{ $t('auth.orders') }}
-            </NuxtLink>
-            <NuxtLink to="/wishlist" class="dd-item" @click="dropdownOpen = false">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-              {{ $t('auth.wishlist') }}
-            </NuxtLink>
-            <NuxtLink to="/cart" class="dd-item" @click="dropdownOpen = false">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-              {{ $t('footer.cart') }}
-              <span v-if="cartCount > 0" class="dd-badge">{{ cartCount }}</span>
-            </NuxtLink>
-            <div class="dd-divider" />
-            <button class="dd-item logout" @click="handleLogout">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-              {{ $t('auth.logout') }}
-            </button>
-          </div>
-        </Transition>
-      </div>
+      <NuxtLink to="/signin" class="btn-signin-mobile mobile-only">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+          <polyline points="10 17 15 12 10 7"/>
+          <line x1="15" y1="12" x2="3" y2="12"/>
+        </svg>
+        {{ $t('auth.signin.login') }}
+      </NuxtLink>
     </template>
 
     <!-- Cart — always visible -->
@@ -178,6 +142,20 @@ function handleLogout() { dropdownOpen.value = false; emit('logout') }
 
 @media (max-width: 768px) {
   .desktop-only { display: none !important; }
-  .cart-btn { display: none; }
+  .mobile-only  { display: none !important; }
+  .cart-btn     { display: none; }
 }
+
+.mobile-only { display: none; }
+
+.btn-signin-mobile {
+  align-items: center; gap: 6px;
+  padding: 7px 12px; border-radius: 10px;
+  border: 1.5px solid #E5E7EB; background: white;
+  color: #0F1117; font-size: 12px; font-weight: 700;
+  text-decoration: none; white-space: nowrap;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: all 0.2s;
+}
+.btn-signin-mobile:hover { border-color: #E8A020; color: #E8A020; }
 </style>
