@@ -6,9 +6,8 @@ const showConfirmPassword = ref(false)
 const config = useRuntimeConfig()
 
 function handleGoogleSignUp() {
-  window.location.href = `http://localhost:3001/auth/google`
+  window.location.href = `${config.public.apiBase.replace('/api/v1', '')}/auth/google`
 }
-
 const props = defineProps<{ currentLang: Lang }>()
 const emit  = defineEmits<{ (e: 'success'): void }>()
 

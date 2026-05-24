@@ -4,8 +4,9 @@ import { useSignIn } from '../composables/useSignIn'
 import type { Lang } from '../types'
 
 const config = useRuntimeConfig()
+
 function loginWithGoogle() {
-  window.location.href = `http://localhost:3001/auth/google`
+  window.location.href = `${config.public.apiBase.replace('/api/v1', '')}/auth/google`
 }
 
 // prop kept so parent template doesn't need changes

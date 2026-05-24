@@ -1,6 +1,6 @@
 import type { Lang, SignUpForm, SignUpErrors, SignUpTranslations } from '../types'
 
-const API = 'http://localhost:3001/api/v1'
+const { public: { apiBase: API } } = useRuntimeConfig()
 
 // ── Translations ──────────────────────────────────────────────────────────────
 const translations: Record<Lang, SignUpTranslations> = {
