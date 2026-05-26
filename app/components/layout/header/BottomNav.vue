@@ -92,7 +92,11 @@ function isActive(path: string, exact = false) {
 </template>
 
 <style scoped>
-.bottom-nav { display: none; }
+.bottom-nav { 
+ display: none;
+ padding: 8px 4px 12px;
+ padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+}
 
 @media (max-width: 768px) {
   .bottom-nav {
@@ -101,7 +105,7 @@ function isActive(path: string, exact = false) {
     z-index: 600;
     background: rgba(15, 17, 23, 0.98);
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 8px 4px env(safe-area-inset-bottom, 10px);
+    padding: 8px 4px calc(env(safe-area-inset-bottom, 0px) + 8px);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
   }
