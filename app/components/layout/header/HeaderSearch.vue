@@ -312,7 +312,14 @@ function removeFromHistory(query: string) {
   .mobile-search-btn  { display: flex; padding: 7px 9px; }
 
   /* Dropdown full width, slightly compact */
-  .dropdown { max-height: 320px; }
+  .dropdown {
+    top: auto;
+    bottom: 100%;
+    border-radius: 16px 16px 0 0;
+    border-top: 2px solid #E8A020;
+    border-bottom: none;
+    max-height: 320px;
+  }
   .product-item { padding: 7px 12px; }
   .prod-thumb { width: 34px; height: 34px; }
 }
