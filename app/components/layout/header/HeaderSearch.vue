@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter, useRoute } from '#app'
+import { useRouter } from '#app'
 
 const { locale } = useI18n()
 
 const searchQuery   = defineModel<string>('searchQuery', { default: '' })
 const searchFocused = ref(false)
 const router        = useRouter()
-const route         = useRoute()
 
 const config = useRuntimeConfig()
 const API    = config.public.apiBase
@@ -26,9 +25,13 @@ const categories = ref<Category[]>([])
 const searching  = ref(false)
 const showDrop   = ref(false)
 const inputRef   = ref<HTMLInputElement | null>(null)
+const wrapRef    = ref<HTMLElement | null>(null)   // ← NEW
 
 onMounted(async () => {
   try { categories.value = await $fetch<Category[]>(`${API}/products/categories/all`) } catch {}
+
+  const saved = localStorage.getItem('chinaexpress_search_history')
+  if (saved) searchHistory.value = JSON.parse(saved)
 })
 
 let st: ReturnType<typeof setTimeout>
@@ -42,7 +45,7 @@ watch(searchQuery, (val) => {
       const res = await $fetch<{ items: Product[] }>(`${API}/products`, {
         params: { search: val, limit: 6 }
       })
-      results.value = res.items
+      results.value  = res.items
       showDrop.value = true
     } catch {}
     finally { searching.value = false }
@@ -51,6 +54,7 @@ watch(searchQuery, (val) => {
 
 function handleSearch() {
   if (!searchQuery.value.trim()) return
+  saveToHistory(searchQuery.value)
   showDrop.value = false
   router.push(`/products?search=${encodeURIComponent(searchQuery.value)}`)
 }
@@ -62,28 +66,34 @@ function goCategory(id: string) {
   showDrop.value = false; searchQuery.value = ''
   router.push(`/products?category=${id}`)
 }
+
 function onFocus() {
   searchFocused.value = true
-  showDrop.value = true  // always open on focus, not just when query exists
+  showDrop.value = true
 }
 function onBlur() {
   searchFocused.value = false
-  // On mobile, keyboard closing triggers blur — don't close dropdown immediately
-  if (window.innerWidth <= 768) {
-    setTimeout(() => showDrop.value = false, 1500)
-  } else {
-    setTimeout(() => showDrop.value = false, 500)
+  // ← dropdown is NOT closed here anymore
+}
+
+// ── Close only on a genuine outside tap/click ──────────────────
+function onOutsideInteraction(e: Event) {
+  if (wrapRef.value && !wrapRef.value.contains(e.target as Node)) {
+    showDrop.value = false
   }
 }
+onMounted(() => {
+  document.addEventListener('mousedown', onOutsideInteraction)
+  document.addEventListener('touchstart', onOutsideInteraction, { passive: true })
+})
+onUnmounted(() => {
+  document.removeEventListener('mousedown', onOutsideInteraction)
+  document.removeEventListener('touchstart', onOutsideInteraction)
+})
+
 function fmt(n: number) { return Number(n).toFixed(2) }
 
 const searchHistory = ref<string[]>([])
-
-onMounted(() => {
-  // load alongside categories fetch
-  const saved = localStorage.getItem('chinaexpress_search_history')
-  if (saved) searchHistory.value = JSON.parse(saved)
-})
 
 function saveToHistory(query: string) {
   const q = query.trim()
@@ -92,16 +102,14 @@ function saveToHistory(query: string) {
   searchHistory.value = updated
   localStorage.setItem('chinaexpress_search_history', JSON.stringify(updated))
 }
-
 function removeFromHistory(query: string) {
   searchHistory.value = searchHistory.value.filter(h => h !== query)
   localStorage.setItem('chinaexpress_search_history', JSON.stringify(searchHistory.value))
 }
-
 </script>
 
 <template>
-  <div :class="['search-wrap', { focused: searchFocused }]">
+  <div ref="wrapRef" :class="['search-wrap', { focused: searchFocused }]">
     <div class="search-inner">
       <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -298,6 +306,8 @@ function removeFromHistory(query: string) {
   .search-wrap {
     /* Show on mobile — flex: 1 fills space between logo and cart */
     max-width: none;
+      min-width: 0;      /* ← allows flex to shrink it when logo needs space */
+    flex-shrink: 1;
   }
 
   .search-inner {

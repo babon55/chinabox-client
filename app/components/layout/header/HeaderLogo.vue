@@ -72,8 +72,16 @@ const { t } = useI18n()
   margin-top: 2px;
 }
 
+@media (max-width: 768px) {
+  .logo-icon { width: 42px; height: 42px; }
+  .logo-main { font-size: 16px; }
+  .logo-sub  { font-size: 9px; letter-spacing: 0.05em; }
+}
+
 @media (max-width: 480px) {
-  .logo-text { display: none; }
-  .logo-icon { width: 48px; height: 48px; }
+  /* ← removed display:none — text stays visible now */
+  .logo-icon { width: 38px; height: 38px; border-radius: 9px; }
+  .logo-main { font-size: 15px; }
+  .logo-sub  { display: none; } /* tagline can still hide, just keep the name */
 }
 </style>
