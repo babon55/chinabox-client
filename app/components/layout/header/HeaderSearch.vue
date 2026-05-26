@@ -65,7 +65,7 @@ function onFocus() {
   searchFocused.value = true
   showDrop.value = true  // always open on focus, not just when query exists
 }
-function onBlur()   { searchFocused.value = false; setTimeout(() => showDrop.value = false, 180) }
+function onBlur() { searchFocused.value = false; setTimeout(() => showDrop.value = false, 500) }
 function fmt(n: number) { return Number(n).toFixed(2) }
 
 const searchHistory = ref<string[]>([])
@@ -140,9 +140,10 @@ function removeFromHistory(query: string) {
               🕐 {{ locale === 'tk' ? 'Soňky gözlegler' : 'Недавние запросы' }}
             </div>
             <div v-for="h in searchHistory" :key="h" class="drop-item history-item"
-                @mousedown.prevent="searchQuery = h; handleSearch()">
+                @mousedown.prevent="searchQuery = h; handleSearch()"
+                @touchstart.prevent="searchQuery = h; handleSearch()">
               <span class="history-text">{{ h }}</span>
-              <button class="history-remove" @mousedown.stop.prevent="removeFromHistory(h)">×</button>
+              <button class="history-remove" @mousedown.stop.prevent="removeFromHistory(h)" @touchstart.stop.prevent="removeFromHistory(h)">×</button>
             </div>
           </div>
           <div v-if="results.length" class="drop-section">
@@ -150,7 +151,7 @@ function removeFromHistory(query: string) {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
               {{ $t('header.products') }}
             </div>
-            <div v-for="p in results" :key="p.id" class="drop-item product-item" @mousedown.prevent="goProduct(p.id)">
+            <div v-for="p in results" :key="p.id" class="drop-item product-item" @mousedown.prevent="goProduct(p.id)" @touchstart.prevent="goProduct(p.id)">
               <div class="prod-thumb">
                 <img v-if="p.imageUrl" :src="p.imageUrl" class="prod-img" />
                 <span v-else class="prod-emoji">{{ p.image }}</span>
@@ -173,13 +174,13 @@ function removeFromHistory(query: string) {
               {{ $t('header.categories') }}
             </div>
             <div class="cats-row">
-              <button v-for="c in categories.slice(0, 5)" :key="c.id" class="cat-chip" @mousedown.prevent="goCategory(c.id)">
+              <button v-for="c in categories.slice(0, 5)" :key="c.id" class="cat-chip" @mousedown.prevent="goCategory(c.id)" @touchstart.prevent="goCategory(c.id)">
                 {{ locale === 'tk' ? c.nameTk : c.nameRu }}
               </button>
             </div>
           </div>
 
-          <div v-if="results.length" class="drop-footer" @mousedown.prevent="handleSearch">
+          <div v-if="results.length" class="drop-footer" @mousedown.prevent="handleSearch" @touchstart.prevent="handleSearch">
             <span>{{ $t('common.viewAll') }}</span>
             <span class="drop-count">{{ results.length }}+</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>

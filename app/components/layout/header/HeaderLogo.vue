@@ -74,6 +74,6 @@ const { t } = useI18n()
 
 @media (max-width: 480px) {
   .logo-text { display: none; }
-  .logo-icon { width: 36px; height: 36px; }
+  .logo-icon { width: 44px; height: 44px; }
 }
 </style>
