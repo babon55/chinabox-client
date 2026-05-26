@@ -63,15 +63,14 @@ function goCategory(id: string) {
 }
 function onFocus() {
   searchFocused.value = true
-  showDrop.value = true  // always open on focus, not just when query exists
+  showDrop.value = true
 }
-function onBlur()   { searchFocused.value = false; setTimeout(() => showDrop.value = false, 180) }
+function onBlur() { searchFocused.value = false; setTimeout(() => showDrop.value = false, 500) }
 function fmt(n: number) { return Number(n).toFixed(2) }
 
 const searchHistory = ref<string[]>([])
 
 onMounted(() => {
-  // load alongside categories fetch
   const saved = localStorage.getItem('chinaexpress_search_history')
   if (saved) searchHistory.value = JSON.parse(saved)
 })
@@ -88,7 +87,6 @@ function removeFromHistory(query: string) {
   searchHistory.value = searchHistory.value.filter(h => h !== query)
   localStorage.setItem('chinaexpress_search_history', JSON.stringify(searchHistory.value))
 }
-
 </script>
 
 <template>
@@ -113,12 +111,11 @@ function removeFromHistory(query: string) {
           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
         </svg>
       </button>
-      <!-- Hide text button on mobile, show icon only -->
       <button class="search-btn desktop-search-btn" @click="handleSearch">
         {{ $t('header.searchButton') }}
       </button>
       <button class="search-btn mobile-search-btn" @click="handleSearch">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
       </button>
@@ -136,21 +133,34 @@ function removeFromHistory(query: string) {
         <template v-else>
           <div v-if="!searchQuery.trim() && searchHistory.length" class="drop-section">
             <div class="drop-label">
-              <!-- clock icon -->
               🕐 {{ locale === 'tk' ? 'Soňky gözlegler' : 'Недавние запросы' }}
             </div>
-            <div v-for="h in searchHistory" :key="h" class="drop-item history-item"
-                @mousedown.prevent="searchQuery = h; handleSearch()">
+            <div
+              v-for="h in searchHistory" :key="h"
+              class="drop-item history-item"
+              @mousedown.prevent="searchQuery = h; handleSearch()"
+              @touchstart.prevent="searchQuery = h; handleSearch()"
+            >
               <span class="history-text">{{ h }}</span>
-              <button class="history-remove" @mousedown.stop.prevent="removeFromHistory(h)">×</button>
+              <button
+                class="history-remove"
+                @mousedown.stop.prevent="removeFromHistory(h)"
+                @touchstart.stop.prevent="removeFromHistory(h)"
+              >×</button>
             </div>
           </div>
+
           <div v-if="results.length" class="drop-section">
             <div class="drop-label">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
               {{ $t('header.products') }}
             </div>
-            <div v-for="p in results" :key="p.id" class="drop-item product-item" @mousedown.prevent="goProduct(p.id)">
+            <div
+              v-for="p in results" :key="p.id"
+              class="drop-item product-item"
+              @mousedown.prevent="goProduct(p.id)"
+              @touchstart.prevent="goProduct(p.id)"
+            >
               <div class="prod-thumb">
                 <img v-if="p.imageUrl" :src="p.imageUrl" class="prod-img" />
                 <span v-else class="prod-emoji">{{ p.image }}</span>
@@ -173,13 +183,23 @@ function removeFromHistory(query: string) {
               {{ $t('header.categories') }}
             </div>
             <div class="cats-row">
-              <button v-for="c in categories.slice(0, 5)" :key="c.id" class="cat-chip" @mousedown.prevent="goCategory(c.id)">
+              <button
+                v-for="c in categories.slice(0, 5)" :key="c.id"
+                class="cat-chip"
+                @mousedown.prevent="goCategory(c.id)"
+                @touchstart.prevent="goCategory(c.id)"
+              >
                 {{ locale === 'tk' ? c.nameTk : c.nameRu }}
               </button>
             </div>
           </div>
 
-          <div v-if="results.length" class="drop-footer" @mousedown.prevent="handleSearch">
+          <div
+            v-if="results.length"
+            class="drop-footer"
+            @mousedown.prevent="handleSearch"
+            @touchstart.prevent="handleSearch"
+          >
             <span>{{ $t('common.viewAll') }}</span>
             <span class="drop-count">{{ results.length }}+</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
@@ -226,7 +246,6 @@ function removeFromHistory(query: string) {
 }
 .search-clear:hover { background: #E5E7EB; color: #0F1117; }
 
-/* Desktop: text button */
 .search-btn {
   background: linear-gradient(135deg, #E8A020, #FF8C00);
   color: white; border: none;
@@ -285,10 +304,7 @@ function removeFromHistory(query: string) {
 
 /* ── Mobile ── */
 @media (max-width: 768px) {
-  .search-wrap {
-    /* Show on mobile — flex: 1 fills space between logo and cart */
-    max-width: none;
-  }
+  .search-wrap { max-width: none; }
 
   .search-inner {
     background: #F3F4F6;
@@ -299,20 +315,38 @@ function removeFromHistory(query: string) {
   }
   .search-wrap.focused .search-inner {
     border-color: #E8A020;
-    border-radius: 12px 12px 0 0;
+    border-radius: 12px;
     background: white;
     box-shadow: 0 0 0 3px rgba(232,160,32,0.12);
   }
 
   .search-input { font-size: 13px; padding: 9px 0; }
 
-  /* Hide text, show icon on mobile */
   .desktop-search-btn { display: none; }
-  .mobile-search-btn  { display: flex; padding: 7px 9px; }
+  .mobile-search-btn  {
+    display: flex;
+    padding: 9px 12px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #E8A020, #FF8C00);
+  }
 
-  /* Dropdown full width, slightly compact */
-  .dropdown { max-height: 320px; }
-  .product-item { padding: 7px 12px; }
-  .prod-thumb { width: 34px; height: 34px; }
+  /* Dropdown as bottom sheet on mobile */
+  .dropdown {
+    position: fixed;
+    top: auto;
+    bottom: 60px; /* above bottom nav */
+    left: 0;
+    right: 0;
+    max-height: 55vh;
+    border-radius: 20px 20px 0 0;
+    border: none;
+    border-top: 3px solid #E8A020;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.15);
+    overflow-y: auto;
+    z-index: 999;
+  }
+
+  .product-item { padding: 10px 16px; }
+  .prod-thumb { width: 38px; height: 38px; }
 }
 </style>
