@@ -43,6 +43,7 @@ watch(searchQuery, (val) => {
         params: { search: val, limit: 6 }
       })
       results.value = res.items
+      showDrop.value = true
     } catch {}
     finally { searching.value = false }
   }, 250)
@@ -65,7 +66,15 @@ function onFocus() {
   searchFocused.value = true
   showDrop.value = true  // always open on focus, not just when query exists
 }
-function onBlur() { searchFocused.value = false; setTimeout(() => showDrop.value = false, 500) }
+function onBlur() {
+  searchFocused.value = false
+  // On mobile, keyboard closing triggers blur — don't close dropdown immediately
+  if (window.innerWidth <= 768) {
+    setTimeout(() => showDrop.value = false, 1500)
+  } else {
+    setTimeout(() => showDrop.value = false, 500)
+  }
+}
 function fmt(n: number) { return Number(n).toFixed(2) }
 
 const searchHistory = ref<string[]>([])
@@ -312,14 +321,7 @@ function removeFromHistory(query: string) {
   .mobile-search-btn  { display: flex; padding: 7px 9px; }
 
   /* Dropdown full width, slightly compact */
-  .dropdown {
-    top: auto;
-    bottom: 100%;
-    border-radius: 16px 16px 0 0;
-    border-top: 2px solid #E8A020;
-    border-bottom: none;
-    max-height: 320px;
-  }
+  .dropdown { max-height: 320px; }
   .product-item { padding: 7px 12px; }
   .prod-thumb { width: 34px; height: 34px; }
 }
