@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ChinaExpress</string>
+    <string name="title_activity_main">ChinaExpress</string>
+    <string name="package_name">tm.chinaexpress.app</string>
+    <string name="custom_url_scheme">tm.chinaexpress.app</string>
+</resources>

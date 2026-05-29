@@ -14,6 +14,9 @@ const __dirname = dirname(__filename);
 
 export default defineNuxtConfig({
   ssr: false,
+  nitro: {
+    preset: 'static'
+  },
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
 
@@ -34,6 +37,9 @@ export default defineNuxtConfig({
   ],
 
   vite: {
+    define: {
+      'process.env.NUXT_PUBLIC_API_BASE': JSON.stringify('https://chinabox-api.onrender.com/api/v1')
+    },
     plugins: [
       // @ts-ignore - Vue I18n plugin auto-registers $t globally
       await import('@intlify/unplugin-vue-i18n/vite').then(mod => mod.default({
@@ -61,7 +67,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'https://chinabox-api.onrender.com/api/v1'
+      apiBase: 'https://chinabox-api.onrender.com/api/v1'
     }
   },
 
