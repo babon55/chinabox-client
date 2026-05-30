@@ -14,6 +14,7 @@ export interface Category {
   id:       string
   nameTk:   string
   nameRu:   string
+  imageUrl?: string | null
   parentId?: string | null
   parent?:   Category | null
   children?: Category[]

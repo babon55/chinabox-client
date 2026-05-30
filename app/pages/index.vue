@@ -52,6 +52,7 @@ const CAT_IMAGES: Record<string, string> = {
 }
 
 function catImage(c: Category): string {
+  if (c.imageUrl) return c.imageUrl
   return CAT_IMAGES[c.nameTk] ?? CAT_IMAGES[c.nameRu] ?? ''
 }
 
