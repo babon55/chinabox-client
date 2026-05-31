@@ -131,7 +131,7 @@ const showPassword        = ref(false)
 
       <p class="signin-link">
         {{ t.haveAccount }}
-        <NuxtLink to="/auth/login" class="signin-anchor">{{ t.signIn }}</NuxtLink>
+        <NuxtLink to="/signin" class="signin-anchor">{{ t.signIn }}</NuxtLink>
       </p>
 
     </form>

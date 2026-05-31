@@ -146,18 +146,21 @@ export function useSignUp(lang: Ref<Lang>) {
         },
       })
 
-      // Persist tokens so the rest of the app can use them
       if (import.meta.client) {
         localStorage.setItem('customer_access_token',  data.accessToken)
         localStorage.setItem('customer_refresh_token', data.refreshToken)
         localStorage.setItem('customer_user', JSON.stringify(data.customer))
+
+        // ← ADD THESE TWO LINES
+        const signinStore = useSigninStore()
+        signinStore.accessToken = data.accessToken
+        signinStore.user = { ...data.customer, address: null, status: 'ACTIVE' }
       }
 
       onSuccess()
     } catch (err: any) {
-      // Show the server error message if available
       const msg = err?.data?.message ?? err?.message ?? 'Registration failed'
-      errors.email = msg   // display under email field (most common conflict)
+      errors.email = msg
     } finally {
       isLoading.value = false
     }
