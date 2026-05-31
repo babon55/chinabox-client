@@ -8,7 +8,16 @@ const config: CapacitorConfig = {
     url: 'https://chinabox-client.vercel.app',
     cleartext: true,
     androidScheme: 'https',
-  }
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 2000,
+      launchAutoHide: true,
+      backgroundColor: '#0f1117',
+      androidSplashResourceName: 'splash',
+      showSpinner: false,
+    },
+  },
 };
 
 export default config;
