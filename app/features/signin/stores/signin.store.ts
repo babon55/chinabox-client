@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { Preferences } from '@capacitor/preferences'
 
 interface CustomerUser {
   id:      string
@@ -9,9 +10,34 @@ interface CustomerUser {
   status:  'ACTIVE' | 'BLOCKED'
 }
 
+async function setItem(key: string, value: string) {
+  try {
+    await Preferences.set({ key, value })
+  } catch {
+    localStorage.setItem(key, value)
+  }
+}
+
+async function getItem(key: string): Promise<string | null> {
+  try {
+    const { value } = await Preferences.get({ key })
+    return value
+  } catch {
+    return localStorage.getItem(key)
+  }
+}
+
+async function removeItem(key: string) {
+  try {
+    await Preferences.remove({ key })
+  } catch {
+    localStorage.removeItem(key)
+  }
+}
+
 export const useSigninStore = defineStore('signin', () => {
-  const { public: { apiBase: API } } = useRuntimeConfig()  // ✅ not hardcoded
-  const router = useRouter()                                // ✅ not navigateTo
+  const { public: { apiBase: API } } = useRuntimeConfig()
+  const router = useRouter()
 
   const user        = ref<CustomerUser | null>(null)
   const accessToken = ref<string | null>(null)
@@ -22,9 +48,9 @@ export const useSigninStore = defineStore('signin', () => {
 
   async function restore() {
     if (!import.meta.client) return
-    const token        = localStorage.getItem('customer_access_token')
-    const refreshToken = localStorage.getItem('customer_refresh_token')
-    const userData     = localStorage.getItem('customer_user')
+    const token        = await getItem('customer_access_token')
+    const refreshToken = await getItem('customer_refresh_token')
+    const userData     = await getItem('customer_user')
     if (!userData) return
 
     const isExpired = (t: string) => {
@@ -46,8 +72,8 @@ export const useSigninStore = defineStore('signin', () => {
           `${API}/customer/refresh`,
           { method: 'POST', body: { refreshToken } }
         )
-        localStorage.setItem('customer_access_token',  data.accessToken)
-        localStorage.setItem('customer_refresh_token', data.refreshToken)
+        await setItem('customer_access_token',  data.accessToken)
+        await setItem('customer_refresh_token', data.refreshToken)
         accessToken.value = data.accessToken
         try { user.value = JSON.parse(userData) } catch { clearSession(); return }
       } catch { clearSession() }
@@ -67,9 +93,9 @@ export const useSigninStore = defineStore('signin', () => {
       accessToken.value = data.accessToken
       user.value        = data.customer
       if (import.meta.client) {
-        localStorage.setItem('customer_access_token',  data.accessToken)
-        localStorage.setItem('customer_refresh_token', data.refreshToken)
-        localStorage.setItem('customer_user',          JSON.stringify(data.customer))
+        await setItem('customer_access_token',  data.accessToken)
+        await setItem('customer_refresh_token', data.refreshToken)
+        await setItem('customer_user',          JSON.stringify(data.customer))
       }
     } catch (err: any) {
       error.value = err?.data?.message ?? 'Login failed'
@@ -81,16 +107,16 @@ export const useSigninStore = defineStore('signin', () => {
 
   function logout() {
     clearSession()
-    router.push('/signin')   // ✅ was navigateTo
+    router.push('/signin')
   }
 
-  function clearSession() {
+  async function clearSession() {
     user.value        = null
     accessToken.value = null
     if (import.meta.client) {
-      localStorage.removeItem('customer_access_token')
-      localStorage.removeItem('customer_refresh_token')
-      localStorage.removeItem('customer_user')
+      await removeItem('customer_access_token')
+      await removeItem('customer_refresh_token')
+      await removeItem('customer_user')
     }
   }
 

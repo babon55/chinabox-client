@@ -1,5 +1,5 @@
 import type { Lang, SignInForm, SignInErrors, SignInTranslations } from '../types'
-import { useSigninStore } from '../stores/signin.store' // adjust path if needed
+import { useSigninStore } from '../stores/signin.store'
 
 const translations: Record<Lang, SignInTranslations> = {
   tk: {
@@ -44,8 +44,6 @@ export function useSignIn(lang: Ref<Lang>) {
     if (!validate()) return
     isLoading.value = true
     try {
-      // ✅ FIXED: use the store's login() so isLoggedIn becomes true
-      // and orders page / cart / any other component that watches the store works correctly
       await signinStore.login(form.email, form.password)
       onSuccess()
     } catch (err: any) {
