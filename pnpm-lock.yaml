@@ -8,15 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@capacitor/android':
-        specifier: ^8.3.4
-        version: 8.3.4(@capacitor/core@8.3.4)
-      '@capacitor/cli':
-        specifier: ^8.3.4
-        version: 8.3.4
-      '@capacitor/core':
-        specifier: ^8.3.4
-        version: 8.3.4
       '@nuxt/ui':
         specifier: ^4.5.1
         version: 4.7.1(@internationalized/date@3.12.1)(@internationalized/number@3.6.6)(@tiptap/extensions@3.22.5(@tiptap/core@3.22.5(@tiptap/pm@3.22.5))(@tiptap/pm@3.22.5))(@tiptap/y-tiptap@3.0.3(prosemirror-model@1.25.4)(prosemirror-state@1.4.4)(prosemirror-view@1.41.8)(y-protocols@1.0.7(yjs@13.6.30))(yjs@13.6.30))(change-case@5.4.4)(db0@0.3.4)(embla-carousel@8.6.0)(ioredis@5.10.1)(magicast@0.5.2)(tailwindcss@4.2.4)(typescript@5.9.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.2)(yaml@2.8.3))(vue-router@5.0.6(@vue/compiler-sfc@3.5.33)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.33(typescript@5.9.3)))(vue@3.5.33(typescript@5.9.3)))(vue@3.5.33(typescript@5.9.3))(yjs@13.6.30)
@@ -48,6 +39,15 @@ importers:
         specifier: ^1.0.3
         version: 1.0.7(vue@3.5.33(typescript@5.9.3))
     devDependencies:
+      '@capacitor/android':
+        specifier: ^8.3.4
+        version: 8.3.4(@capacitor/core@8.3.4)
+      '@capacitor/cli':
+        specifier: ^8.3.4
+        version: 8.3.4
+      '@capacitor/core':
+        specifier: ^8.3.4
+        version: 8.3.4
       '@intlify/unplugin-vue-i18n':
         specifier: ^11.0.7
         version: 11.1.2(@vue/compiler-dom@3.5.33)(eslint@10.2.1(jiti@2.6.1))(rollup@4.60.2)(typescript@5.9.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.2)(yaml@2.8.3))(vue-i18n@11.4.0(vue@3.5.33(typescript@5.9.3)))(vue@3.5.33(typescript@5.9.3))
