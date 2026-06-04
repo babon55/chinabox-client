@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Preferences } from '@capacitor/preferences'
+import { Capacitor } from '@capacitor/core'
 
 const route = useRoute()
 const signinStore = useSigninStore()
@@ -26,18 +27,14 @@ onMounted(async () => {
     signinStore.accessToken = token
     signinStore.user = customer
 
-    navigateTo('/')
+    // If running in native app, redirect via deep link to bring focus back to app
+    if (Capacitor.isNativePlatform()) {
+      window.location.href = `tm.chinaexpress.app://auth/google/success?token=${token}&refresh=${refreshToken}`
+    } else {
+      navigateTo('/')
+    }
   } else {
     navigateTo('/signin?error=google_failed')
   }
 })
 </script>
-
-<template>
-  <div style="display:flex; align-items:center; justify-content:center; height:100vh; background:#0F1117; color:white; font-family:'Plus Jakarta Sans', sans-serif;">
-    <div style="text-align:center">
-      <div style="font-size:32px; margin-bottom:12px">⏳</div>
-      <p>Signing you in...</p>
-    </div>
-  </div>
-</template>
