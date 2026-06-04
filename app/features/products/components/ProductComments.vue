@@ -29,12 +29,30 @@ interface CommentsData {
 const token      = ref<string | null>(null)
 const customerId = ref<string | null>(null)
 
-onMounted(() => {
-  token.value = localStorage.getItem('customer_access_token')
-  const raw = localStorage.getItem('customer_user')
+onMounted(async () => {
+  // Check localStorage first
+  let t = localStorage.getItem('customer_access_token')
+  let raw = localStorage.getItem('customer_user')
+
+  // Fallback to Capacitor Preferences (native app)
+  if (!t) {
+    try {
+      const { Preferences } = await import('@capacitor/preferences')
+      const [tokenRes, userRes] = await Promise.all([
+        Preferences.get({ key: 'customer_access_token' }),
+        Preferences.get({ key: 'customer_user' }),
+      ])
+      t   = tokenRes.value
+      raw = userRes.value
+    } catch {}
+  }
+
+  token.value = t
   if (raw) {
     try { customerId.value = JSON.parse(raw).id } catch {}
   }
+
+  loadComments()
 })
 
 // ── Comments data ─────────────────────────────────────────────────────────────
@@ -49,7 +67,6 @@ async function loadComments() {
   finally { loading.value = false }
 }
 
-onMounted(loadComments)
 
 // ── Submit form ───────────────────────────────────────────────────────────────
 const newRating   = ref(0)
