@@ -1,29 +1,28 @@
 <script setup lang="ts">
+import { Preferences } from '@capacitor/preferences'
+
 const route = useRoute()
 const signinStore = useSigninStore()
 
-onMounted(() => {
-  const token = route.query.token as string
-  const refreshToken = route.query.refresh as string  // ✅ add this
+onMounted(async () => {
+  const token        = route.query.token as string
+  const refreshToken = route.query.refresh as string
 
   if (token) {
-    // Decode JWT payload to get user info
-      const payload = JSON.parse(atob(token.split('.')[1]!))
-        const customer = {
-          id:      payload.sub,
-          name:    payload.name  ?? '',
-          email:   payload.email ?? '',
-          phone:   payload.phone ?? null,
-          address: null,
-          status:  'ACTIVE' as const,
-        }
+    const payload = JSON.parse(atob(token.split('.')[1]!))
+    const customer = {
+      id:      payload.sub,
+      name:    payload.name  ?? '',
+      email:   payload.email ?? '',
+      phone:   payload.phone ?? null,
+      address: null,
+      status:  'ACTIVE' as const,
+    }
 
-    // Save exactly like your normal login does
-    localStorage.setItem('customer_access_token', token)
-    localStorage.setItem('customer_refresh_token', refreshToken)  // ✅ add this
-    localStorage.setItem('customer_user', JSON.stringify(customer))
+    await Preferences.set({ key: 'customer_access_token',  value: token })
+    await Preferences.set({ key: 'customer_refresh_token', value: refreshToken })
+    await Preferences.set({ key: 'customer_user',          value: JSON.stringify(customer) })
 
-    // Update store state
     signinStore.accessToken = token
     signinStore.user = customer
 
