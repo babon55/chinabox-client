@@ -8,9 +8,29 @@ export type SelectedOptions = Record<string, string>
 const SIMPLE_RATE = 60
 const FAST_RATE   = 140
 
+async function getToken(): Promise<string | null> {
+  let token = localStorage.getItem('customer_access_token')
+  if (!token) {
+    try {
+      const { Preferences } = await import('@capacitor/preferences')
+      const { value } = await Preferences.get({ key: 'customer_access_token' })
+      token = value
+    } catch {}
+  }
+  return token
+}
+
 async function refreshCustomerToken(apiBase?: string): Promise<string | null> {
-  const refreshToken = localStorage.getItem('customer_refresh_token')
+  let refreshToken = localStorage.getItem('customer_refresh_token')
+  if (!refreshToken) {
+    try {
+      const { Preferences } = await import('@capacitor/preferences')
+      const { value } = await Preferences.get({ key: 'customer_refresh_token' })
+      refreshToken = value
+    } catch {}
+  }
   if (!refreshToken) return null
+
   const base = apiBase || useRuntimeConfig().public.apiBase
   try {
     const data = await $fetch<{ accessToken: string; refreshToken: string }>(
@@ -19,6 +39,11 @@ async function refreshCustomerToken(apiBase?: string): Promise<string | null> {
     )
     localStorage.setItem('customer_access_token', data.accessToken)
     localStorage.setItem('customer_refresh_token', data.refreshToken)
+    try {
+      const { Preferences } = await import('@capacitor/preferences')
+      await Preferences.set({ key: 'customer_access_token', value: data.accessToken })
+      await Preferences.set({ key: 'customer_refresh_token', value: data.refreshToken })
+    } catch {}
     return data.accessToken
   } catch {
     localStorage.removeItem('customer_access_token')
@@ -152,7 +177,7 @@ export const useCartStore = defineStore('cart', () => {
     if (!import.meta.client) return false
     const config = useRuntimeConfig()
     const API    = config.public.apiBase
-    let token    = localStorage.getItem('customer_access_token')
+    let token = await getToken()
     if (!token) { router.push('/signin'); return false }
 
     const invalidItems = items.value.filter(i => !i.id || i.id.trim() === '')

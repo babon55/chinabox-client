@@ -1,14 +1,19 @@
-// app/middleware/customer-auth.ts
-// Protects routes that require a logged-in customer.
-// Redirects to /auth/signin if no access token is found in localStorage.
-
-export default defineNuxtRouteMiddleware(() => {
-  // Only runs on client — localStorage is not available on server
+export default defineNuxtRouteMiddleware(async () => {
   if (import.meta.server) return
 
-  const token = localStorage.getItem('customer_access_token')
+  // Check localStorage first
+  let token = localStorage.getItem('customer_access_token')
+
+  // Fallback to Capacitor Preferences (native app)
+  if (!token) {
+    try {
+      const { Preferences } = await import('@capacitor/preferences')
+      const { value } = await Preferences.get({ key: 'customer_access_token' })
+      token = value
+    } catch {}
+  }
 
   if (!token) {
-    return navigateTo('/auth/signin')
+    return navigateTo('/signin')  // ← was /auth/signin
   }
 })
