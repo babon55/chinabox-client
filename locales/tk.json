@@ -426,7 +426,11 @@
     "confirmPasswordPlaceholder": "Paroly gaýtala",
     "updatePassword": "Paroly täzele",
     "passwordMismatch": "Parollar gabat gelmeýär.",
-    "passwordSuccess": "Parol üstünlikli üýtgedildi!"
+    "passwordSuccess": "Parol üstünlikli üýtgedildi!",
+    "statusActive": "Işjeň",
+    "statusBlocked": "Petiklendi",
+    "editDetails": "Maglumatlary üýtget",
+    "currentPassword": "Häzirki parol"
   },
   "wishlist": {
     "title":          "Halanlarym",

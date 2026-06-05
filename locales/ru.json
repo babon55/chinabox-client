@@ -426,7 +426,11 @@
     "confirmPasswordPlaceholder": "Повторите пароль",
     "updatePassword": "Обновить пароль",
     "passwordMismatch": "Пароли не совпадают.",
-    "passwordSuccess": "Пароль успешно изменён!"
+    "passwordSuccess": "Пароль успешно изменён!",
+    "statusActive": "Активен",
+    "statusBlocked": "Заблокирован",
+    "editDetails": "Редактировать данные",
+    "currentPassword": "Текущий пароль"
   },
   "wishlist": {
     "title":          "Избранное",
