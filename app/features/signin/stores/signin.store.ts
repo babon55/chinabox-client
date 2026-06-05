@@ -21,7 +21,8 @@ async function setItem(key: string, value: string) {
 async function getItem(key: string): Promise<string | null> {
   try {
     const { value } = await Preferences.get({ key })
-    return value
+    if (value !== null) return value          // ← add this check
+    return localStorage.getItem(key)          // ← fallback
   } catch {
     return localStorage.getItem(key)
   }
@@ -76,9 +77,9 @@ export const useSigninStore = defineStore('signin', () => {
         await setItem('customer_refresh_token', data.refreshToken)
         accessToken.value = data.accessToken
         try { user.value = JSON.parse(userData) } catch { clearSession(); return }
-      } catch { clearSession() }
+      } catch { await clearSession() }
     } else {
-      clearSession()
+      await clearSession()
     }
   }
 
@@ -105,8 +106,8 @@ export const useSigninStore = defineStore('signin', () => {
     }
   }
 
-  function logout() {
-    clearSession()
+  async function logout() {
+    await clearSession()
     router.push('/signin')
   }
 

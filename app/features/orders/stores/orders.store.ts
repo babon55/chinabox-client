@@ -12,16 +12,24 @@ export const useOrdersStore = defineStore('orders', () => {
   const error   = ref<string | null>(null)
 
   // ── Helpers ────────────────────────────────────────────────────────────────
-  function getToken(): string {
+  async function getToken(): Promise<string> {
     const signinStore = useSigninStore()
-    return signinStore.accessToken
-      ?? (import.meta.client ? localStorage.getItem('customer_access_token') : null)
-      ?? ''
+    if (signinStore.accessToken) return signinStore.accessToken
+
+    if (import.meta.client) {
+      try {
+        const { Preferences } = await import('@capacitor/preferences')
+        const { value } = await Preferences.get({ key: 'customer_access_token' })
+        if (value) return value
+      } catch {}
+      return localStorage.getItem('customer_access_token') ?? ''
+    }
+    return ''
   }
 
   // ── Actions ────────────────────────────────────────────────────────────────
   async function fetchOrders(): Promise<void> {
-    const token = getToken()
+    const token = await getToken()
     if (!token) return
 
     loading.value = true
