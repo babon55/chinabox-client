@@ -14,13 +14,22 @@ export const useProfileStore = defineStore('profile', () => {
   const error   = ref<string | null>(null)
 
   // ── Helpers ────────────────────────────────────────────────────────────────
- function getToken(): string {
-  const token = signinStore.accessToken ?? localStorage.getItem('customer_access_token') ?? ''
-  console.log('token:', token) // ← add this temporarily
-  return token
-}
-  function authHeaders(): Record<string, string> {
-    return { Authorization: `Bearer ${getToken()}` }
+  async function getToken(): Promise<string> {
+    if (signinStore.accessToken) return signinStore.accessToken
+
+    if (import.meta.client) {
+      try {
+        const { Preferences } = await import('@capacitor/preferences')
+        const { value } = await Preferences.get({ key: 'customer_access_token' })
+        if (value) return value
+      } catch {}
+      return localStorage.getItem('customer_access_token') ?? ''
+    }
+    return ''
+  }
+  
+  async function authHeaders(): Promise<Record<string, string>> {
+    return { Authorization: `Bearer ${await getToken()}` }
   }
 
   // ── Actions ────────────────────────────────────────────────────────────────
@@ -29,7 +38,7 @@ export const useProfileStore = defineStore('profile', () => {
     error.value   = null
     try {
       profile.value = await $fetch<CustomerProfile>(`${API}/customer/me`, {
-        headers: authHeaders(),
+        headers: await authHeaders(),
       })
     } catch (e: any) {
       error.value = e?.data?.message ?? e?.message ?? 'Failed to load profile'
@@ -42,14 +51,20 @@ export const useProfileStore = defineStore('profile', () => {
     try {
       const updated = await $fetch<CustomerProfile>(`${API}/customer/me`, {
         method:  'PATCH',
-        headers: authHeaders(),
+        headers: await authHeaders(),
         body:    payload,
       })
       profile.value = updated
 
-      // Keep localStorage user object in sync
-      const stored = JSON.parse(localStorage.getItem('customer_user') ?? '{}')
-      localStorage.setItem('customer_user', JSON.stringify({ ...stored, ...updated }))
+      try {
+        const { Preferences } = await import('@capacitor/preferences')
+        const res = await Preferences.get({ key: 'customer_user' })
+        const stored = JSON.parse(res.value ?? '{}')
+        await Preferences.set({ key: 'customer_user', value: JSON.stringify({ ...stored, ...updated }) })
+      } catch {
+        const stored = JSON.parse(localStorage.getItem('customer_user') ?? '{}')
+        localStorage.setItem('customer_user', JSON.stringify({ ...stored, ...updated }))
+      }
 
       return { ok: true }
     } catch (e: any) {
@@ -62,7 +77,7 @@ export const useProfileStore = defineStore('profile', () => {
     try {
       await $fetch(`${API}/customer/me`, {
         method:  'PATCH',
-        headers: authHeaders(),
+        headers: await authHeaders(),
         body:    payload,
       })
       return { ok: true }
