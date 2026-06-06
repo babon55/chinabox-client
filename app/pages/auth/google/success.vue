@@ -26,8 +26,12 @@ onMounted(async () => {
     signinStore.accessToken = token
     signinStore.user = customer
 
-    // Always try deep link — opens app if installed, fallback to web after 1.5s
-    window.location.href = `chinaexpress://auth/google/success?token=${token}&refresh=${refreshToken}`
+    // Try deep link silently — works in app, fails silently in browser
+    try {
+      window.location.href = `chinaexpress://auth/google/success?token=${token}&refresh=${refreshToken}`
+    } catch {}
+    
+    // Fallback for web after delay
     setTimeout(() => { navigateTo('/') }, 1500)
   } else {
     navigateTo('/signin?error=google_failed')
