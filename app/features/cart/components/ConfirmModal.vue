@@ -73,13 +73,14 @@ const emit = defineEmits<{
   .confirm-overlay {
     align-items: flex-end;
     padding: 0;
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); /* ← add this */
   }
 
   .confirm-modal {
     max-width: 100%;
     border-radius: 20px 20px 0 0;
     padding: 12px 20px 24px;
-    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
     text-align: left;
   }
 
