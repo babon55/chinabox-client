@@ -633,7 +633,15 @@ useHead({
 @media (max-width: 768px) {
   .product-layout { grid-template-columns: 1fr; gap: 28px; }
   .image-col { position: static; }
-  .main-image-wrap { aspect-ratio: 4/3; }
+  .main-image-wrap { 
+    aspect-ratio: unset;
+    height: auto;
+  }
+  .main-img { 
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
   .related-grid { grid-template-columns: repeat(2, 1fr); }
   .prod-title { font-size: 22px; }
   .sk-layout { grid-template-columns: 1fr; }
