@@ -49,7 +49,7 @@ export function useProductCatalog() {
         nameRu:   p.nameRu,
         image:    p.image,
         imageUrl: firstImage(p),
-        price:    Number(p.price),
+        price:    clientPrice(Number(p.price), p.markup ?? 50),
         weightG:  p.weightG ?? null,
         stock:    p.stock,
         options:  p.options as ProductOption[],

@@ -2,8 +2,8 @@
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ProductOptionsSelector from './ProductOptionsSelector.vue'
-import type { ProductOption, SelectedOptions } from '../types/product'
-import type { Category } from '../types/product'
+import type { ProductOption, SelectedOptions } from '../types/index.js'
+import type { Category } from '../types/index.js'
 
 // ── Public types ──────────────────────────────────────────────────────────────
 
