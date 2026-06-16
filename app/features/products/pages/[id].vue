@@ -442,7 +442,7 @@ useHead({
   overflow: hidden; cursor: zoom-in;
   box-shadow: 0 8px 32px rgba(0,0,0,.08);
 }
-.main-img { width: 100%; height: 100%; object-fit: contain; transition: transform .4s ease; background: var(--white); }
+.main-img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
 .main-image-wrap:hover .main-img { transform: scale(1.03); }
 .big-emoji { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 120px; }
 
@@ -634,13 +634,11 @@ useHead({
   .product-layout { grid-template-columns: 1fr; gap: 28px; }
   .image-col { position: static; }
   .main-image-wrap { 
-    aspect-ratio: unset;
-    height: auto;
+    aspect-ratio: 3/4;
+    border-radius: 12px;
   }
   .main-img { 
-    width: 100%;
-    height: auto;
-    object-fit: contain;
+    object-fit: cover;
   }
   .related-grid { grid-template-columns: repeat(2, 1fr); }
   .prod-title { font-size: 22px; }
