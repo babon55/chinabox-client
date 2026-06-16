@@ -636,6 +636,7 @@ useHead({
   .main-image-wrap { 
     aspect-ratio: 3/4;
     border-radius: 12px;
+    width: auto; height: 360px;
   }
   .main-img { 
     object-fit: cover;
