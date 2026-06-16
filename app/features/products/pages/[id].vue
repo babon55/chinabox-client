@@ -632,15 +632,27 @@ useHead({
 /* Responsive */
 @media (max-width: 768px) {
   .product-layout { grid-template-columns: 1fr; gap: 28px; }
-  .image-col { position: static; }
-  .main-image-wrap { 
-    aspect-ratio: 3/4;
-    border-radius: 12px;
-    width: auto; height: 360px;
+
+  .image-col {
+    position: static;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
   }
-  .main-img { 
+
+  .main-image-wrap {
+    aspect-ratio: 1 / 1; /* back to square — safe for all image shapes */
+    border-radius: 12px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .main-img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
   }
+
   .related-grid { grid-template-columns: repeat(2, 1fr); }
   .prod-title { font-size: 22px; }
   .sk-layout { grid-template-columns: 1fr; }
