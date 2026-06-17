@@ -259,6 +259,19 @@ function requestRemove() {
   /* Hide label text on very small screens — icon only */
   .remove-label { display: none; }
   .action-btn.remove { padding: 8px 10px; border-radius: 8px; }
+  .item-top {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .stock-badge {
+    align-self: flex-start;
+  }
+
+  .item-name {
+    white-space: normal;
+    word-break: break-word;
+  }
 }
 
 @media (max-width: 400px) {
