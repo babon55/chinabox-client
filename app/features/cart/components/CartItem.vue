@@ -40,7 +40,13 @@ function requestRemove() {
 
     <!-- Product image -->
     <div class="item-img">
-      <span class="item-emoji">{{ item.image }}</span>
+      <img
+        v-if="item.imageUrl"
+        :src="item.imageUrl"
+        :alt="productName"
+        class="item-real-img"
+      />
+      <span v-else class="item-emoji">{{ item.image }}</span>
       <span v-if="!item.inStock" class="stock-overlay">
         {{ $t('cartItem.outOfStock') }}
       </span>
@@ -126,6 +132,9 @@ function requestRemove() {
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
+}
+.item-real-img {
+  width: 100%; height: 100%; object-fit: cover; border-radius: 12px;
 }
 .item-emoji { font-size: 44px; }
 .stock-overlay {
