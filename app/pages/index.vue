@@ -116,6 +116,17 @@ useHead({
             <NuxtLink to="/track" class="hero-btn-secondary">
               {{ locale === 'tk' ? 'Sargyt Yzarla' : 'Отследить заказ' }}
             </NuxtLink>
+            <a
+              href="https://github.com/babon55/chinabox-client/releases/download/v1.0.0/app-release.apk"
+              class="hero-btn-apk"
+              download
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <rect x="5" y="2" width="14" height="20" rx="2"/>
+                <line x1="12" y1="18" x2="12" y2="18.01"/>
+              </svg>
+              {{ locale === 'tk' ? 'Android Programmany Ýükle' : 'Скачать Android приложение' }}
+            </a>
           </div>
         </div>
 
@@ -377,6 +388,16 @@ useHead({
   transition: all .2s;
 }
 .hero-btn-secondary:hover { border-color: rgba(255,255,255,0.5); color: white; background: rgba(255,255,255,0.06); }
+
+.hero-btn-apk {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 48px; padding: 0 24px; border-radius: 50px;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 700;
+  text-decoration: none; transition: all .2s;
+  background: rgba(255,255,255,0.05);
+}
+.hero-btn-apk:hover { border-color: #22C55E; color: #22C55E; background: rgba(34,197,94,0.08); }
 .hero-stats { display: flex; align-items: center; gap: 20px; padding-top: 8px; }
 .hero-stat  { display: flex; flex-direction: column; gap: 2px; }
 .hero-stat strong { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: white; }
