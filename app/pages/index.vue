@@ -206,7 +206,7 @@ useHead({
         </div>
 
         <div v-else class="categories-grid">
-          <NuxtLink v-for="c in categories" :key="c.id" :to="`/products?category=${c.id}`" class="cat-card">
+          <NuxtLink v-for="c in categories.filter(c => !c.parentId)" :key="c.id" :to="`/products?category=${c.id}`" class="cat-card">
             <div class="cat-img-wrap">
               <img
                 v-if="catImage(c)"
