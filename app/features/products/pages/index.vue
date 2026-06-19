@@ -244,12 +244,15 @@ function onMobileFilterApply(payload: { categoryId: string; sortBy: string }) {
 }
 
 // ── Sync URL → store on mount ──
-productStore.search     = (route.query.search   as string) ?? ''
-productStore.categoryId = (route.query.category as string) ?? ''
+const newSearch   = (route.query.search   as string) ?? ''
+const newCategory = (route.query.category as string) ?? ''
+const filtersChanged = newSearch !== productStore.search || newCategory !== productStore.categoryId
 
-// ── Initial load ──
+productStore.search     = newSearch
+productStore.categoryId = newCategory
+
 await Promise.all([
-  productStore.hasLoaded ? Promise.resolve() : productStore.fetchProducts(),
+  (!productStore.hasLoaded || filtersChanged) ? productStore.fetchProducts() : Promise.resolve(),
   productStore.fetchCategories(),
 ])
 
