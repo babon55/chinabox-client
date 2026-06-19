@@ -260,6 +260,11 @@ watch(() => route.query.search, (val) => {
   productStore.fetchProducts()
 })
 
+watch(() => route.query.category, (val) => {
+  productStore.categoryId = (val as string) ?? ''
+  productStore.page       = 1
+  productStore.fetchProducts()
+})
 // ── Page actions ──
 function selectCategory(id: string): void {
   productStore.categoryId = id
