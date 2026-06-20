@@ -15,6 +15,7 @@ interface Comment {
   id:        string
   rating:    number
   text:      string
+  images?:   string[]
   createdAt: string
   customer:  { id: string; name: string }
 }
@@ -30,11 +31,9 @@ const token      = ref<string | null>(null)
 const customerId = ref<string | null>(null)
 
 onMounted(async () => {
-  // Check localStorage first
   let t = localStorage.getItem('customer_access_token')
   let raw = localStorage.getItem('customer_user')
 
-  // Fallback to Capacitor Preferences (native app)
   if (!t) {
     try {
       const { Preferences } = await import('@capacitor/preferences')
@@ -67,6 +66,36 @@ async function loadComments() {
   finally { loading.value = false }
 }
 
+// ── Image upload state ───────────────────────────────────────────────────────
+interface ImageEntry {
+  file:      File
+  preview:   string
+  url:       string | null
+  uploading: boolean
+}
+const imageEntries = ref<ImageEntry[]>([])
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const MAX_COMMENT_IMAGES = 3
+
+function onFileChange(e: Event) {
+  const files = Array.from((e.target as HTMLInputElement).files ?? [])
+  const remaining = MAX_COMMENT_IMAGES - imageEntries.value.length
+  const allowed   = files.slice(0, remaining)
+  for (const file of allowed) {
+    if (file.size > 5 * 1024 * 1024) continue
+    imageEntries.value.push({
+      file, preview: URL.createObjectURL(file), url: null, uploading: false,
+    })
+  }
+  if (fileInputRef.value) fileInputRef.value.value = ''
+}
+
+function removeImage(idx: number) {
+  imageEntries.value.splice(idx, 1)
+}
+
+// Lightbox for viewing comment images
+const lightboxImg = ref<string | null>(null)
 
 // ── Submit form ───────────────────────────────────────────────────────────────
 const newRating   = ref(0)
@@ -91,13 +120,29 @@ async function submitComment() {
   submitErr.value  = ''
 
   try {
+    // Upload pending images first
+    const uploadedUrls: string[] = []
+    for (const entry of imageEntries.value) {
+      entry.uploading = true
+      const form = new FormData()
+      form.append('file', entry.file)
+      const res = await $fetch<{ url: string }>(`${API}/upload/comment`, {
+        method:  'POST',
+        body:    form,
+        headers: { Authorization: `Bearer ${token.value}` },
+      })
+      uploadedUrls.push(res.url)
+      entry.uploading = false
+    }
+
     await $fetch(`${API}/products/${props.productId}/comments`, {
       method:  'POST',
-      body:    { rating: newRating.value, text: newText.value },
+      body:    { rating: newRating.value, text: newText.value, images: uploadedUrls },
       headers: { Authorization: `Bearer ${token.value}` },
     })
     newRating.value = 0
     newText.value   = ''
+    imageEntries.value = []
     submitted.value = true
     await loadComments()
     setTimeout(() => { submitted.value = false }, 3000)
@@ -162,6 +207,13 @@ const reviewPlaceholder = computed(() =>
 
 <template>
   <section class="comments-section">
+
+    <!-- Lightbox -->
+    <Teleport to="body">
+      <div v-if="lightboxImg" class="img-lightbox" @click="lightboxImg = null">
+        <img :src="lightboxImg" />
+      </div>
+    </Teleport>
 
     <!-- Header -->
     <div class="section-header">
@@ -255,6 +307,30 @@ const reviewPlaceholder = computed(() =>
           maxlength="1000"
         />
 
+        <!-- Image upload -->
+        <div class="comment-img-section">
+          <div class="comment-img-row">
+            <div v-for="(entry, idx) in imageEntries" :key="idx" class="comment-img-slot">
+              <img :src="entry.preview" />
+              <div v-if="entry.uploading" class="comment-img-uploading"><div class="spin-sm" /></div>
+              <button class="comment-img-remove" @click="removeImage(idx)">×</button>
+            </div>
+            <div
+              v-if="imageEntries.length < MAX_COMMENT_IMAGES"
+              class="comment-img-add"
+              @click="fileInputRef?.click()"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+            </div>
+          </div>
+          <input
+            ref="fileInputRef" type="file" accept="image/jpeg,image/png,image/webp,image/gif"
+            multiple class="hidden-file-input" @change="onFileChange"
+          />
+        </div>
+
         <div class="form-footer">
           <span class="char-count" :class="{ warn: newText.length > 900 }">
             {{ newText.length }}/1000
@@ -335,6 +411,17 @@ const reviewPlaceholder = computed(() =>
         </div>
 
         <p class="comment-text">{{ comment.text }}</p>
+
+        <!-- Comment images -->
+        <div v-if="comment.images?.length" class="comment-img-display">
+          <img
+            v-for="(img, i) in comment.images"
+            :key="i"
+            :src="img"
+            class="comment-img-thumb"
+            @click="lightboxImg = img"
+          />
+        </div>
 
       </div>
     </div>
@@ -419,6 +506,33 @@ const reviewPlaceholder = computed(() =>
 .review-textarea:focus { border-color: var(--gold); }
 .review-textarea::placeholder { color: var(--subtle); }
 
+/* Image upload */
+.comment-img-section { display: flex; flex-direction: column; gap: 8px; }
+.comment-img-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.comment-img-slot {
+  width: 64px; height: 64px; border-radius: var(--radius-md);
+  overflow: hidden; position: relative; border: 1.5px solid var(--border-light);
+}
+.comment-img-slot img { width: 100%; height: 100%; object-fit: cover; }
+.comment-img-uploading {
+  position: absolute; inset: 0; background: rgba(255,255,255,.7);
+  display: flex; align-items: center; justify-content: center;
+}
+.spin-sm { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin .7s linear infinite; }
+.comment-img-remove {
+  position: absolute; top: 2px; right: 2px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: rgba(0,0,0,.6); border: none; color: white;
+  font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1;
+}
+.comment-img-add {
+  width: 64px; height: 64px; border-radius: var(--radius-md);
+  border: 1.5px dashed var(--border); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--subtle); transition: all .15s;
+}
+.comment-img-add:hover { border-color: var(--gold); color: var(--gold); }
+.hidden-file-input { display: none; }
+
 .form-footer  { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .char-count   { font-size: 12px; color: var(--subtle); }
 .char-count.warn { color: var(--error); }
@@ -499,6 +613,24 @@ const reviewPlaceholder = computed(() =>
 .comment-text {
   font-size: 14px; color: var(--dark); line-height: 1.65; white-space: pre-wrap;
 }
+
+/* Comment image display */
+.comment-img-display { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.comment-img-thumb {
+  width: 72px; height: 72px; border-radius: var(--radius-md);
+  object-fit: cover; cursor: pointer; border: 1.5px solid var(--border-light);
+  transition: transform .15s;
+}
+.comment-img-thumb:hover { transform: scale(1.05); }
+
+/* Lightbox */
+.img-lightbox {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,.9);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; cursor: zoom-out;
+}
+.img-lightbox img { max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: var(--radius-lg); }
 
 @media (max-width: 768px) {
   .comments-section { padding: 0 16px 40px; }
