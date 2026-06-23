@@ -10,14 +10,8 @@ const { locale } = useI18n()
 
 // ── Cart & quick-add ──────────────────────────────────────────────────────────
 const {
-  handleCartClick,
-  addToCart,
-  onQuickAdd,
-  closeQuickAdd,
-  quickProduct,
-  addedId,
-  clientPrice,
   fmt,
+  clientPrice,
   firstImage,
 } = useProductCatalog()
 
@@ -35,7 +29,6 @@ const { data: categoriesData, error: categoriesError } = await useAsyncData(
 
 const products   = computed(() => productsData.value?.items   ?? [])
 const categories = computed(() => categoriesData.value        ?? [])
-const hasError   = computed(() => !!(productsError.value || categoriesError.value))
 
 // ── Category images ───────────────────────────────────────────────────────────
 const CAT_IMAGES: Record<string, string> = {
@@ -276,43 +269,11 @@ useHead({
               <div class="product-price-wrap">
                 <span class="product-price">{{ fmt(clientPrice(Number(p.price), p.markup)) }} TMT</span>
               </div>
-
-              <!-- ✅ Cart button — now actually works -->
-              <button
-                class="product-btn"
-                :class="{ added: addedId === p.id }"
-                :disabled="p.stock === 0"
-                @click.prevent="handleCartClick(p)"
-              >
-                <!-- Checkmark shown briefly after adding -->
-                <svg v-if="addedId === p.id" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                <!-- Cart icon normally -->
-                <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-
-                <template v-if="p.stock === 0">
-                  {{ locale === 'tk' ? 'Gutardy' : 'Нет в наличии' }}
-                </template>
-                <template v-else-if="addedId === p.id">
-                  {{ locale === 'tk' ? 'Goşuldy!' : 'Добавлено!' }}
-                </template>
-                <template v-else>
-                  {{ locale === 'tk' ? 'Sebede Goş' : 'В корзину' }}
-                </template>
-              </button>
             </div>
           </NuxtLink>
         </div>
       </div>
     </section>
-
-    <!-- Quick-add modal — opens when product has options -->
-    <QuickAddModal
-      v-if="quickProduct"
-      :product="quickProduct"
-      @add="onQuickAdd"
-      @close="closeQuickAdd"
-    />
-
   </div>
 </template>
 
