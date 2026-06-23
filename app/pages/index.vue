@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import type { Product, Category } from '~/features/products/types'
+import { onMounted, ref } from 'vue'
 
 definePageMeta({ layout: 'default' })
 
 const config     = useRuntimeConfig()
 const API        = config.public.apiBase
 const { locale } = useI18n()
+const isNativeApp = ref(false)
 
 // ── Cart & quick-add ──────────────────────────────────────────────────────────
 const {
@@ -69,6 +71,11 @@ useHead({
     locale.value === 'tk' ? 'ChinaExpress — Baş sahypa' : 'ChinaExpress — Главная'
   ),
 })
+
+onMounted(() => {
+  // Capacitor injects window.Capacitor when running inside the native app
+  isNativeApp.value = !!(window as any).Capacitor?.isNativePlatform?.()
+})
 </script>
 
 <template>
@@ -106,20 +113,24 @@ useHead({
               </svg>
               {{ locale === 'tk' ? 'Harytlara Göz Gezdiriň' : 'Смотреть товары' }}
             </NuxtLink>
-            <NuxtLink to="/track" class="hero-btn-secondary">
-              {{ locale === 'tk' ? 'Sargyt Yzarla' : 'Отследить заказ' }}
-            </NuxtLink>
             <a
+              v-if="!isNativeApp"
               href="https://github.com/babon55/chinabox-client/releases/download/v1.0.0/app-release.apk"
               class="hero-btn-apk"
               download
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                <rect x="5" y="2" width="14" height="20" rx="2"/>
-                <line x1="12" y1="18" x2="12" y2="18.01"/>
+              <span class="apk-pulse-dot" />
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                <path d="M17.523 15.34c-.5 0-.91-.41-.91-.91s.41-.91.91-.91.91.41.91.91-.41.91-.91.91M6.477 15.34c-.5 0-.91-.41-.91-.91s.41-.91.91-.91.91.41.91.91-.41.91-.91.91M17.81 9.74l1.92-3.32a.4.4 0 0 0-.15-.55.4.4 0 0 0-.55.15l-1.94 3.36a11.7 11.7 0 0 0-9.07 0L6.06 6.02a.4.4 0 0 0-.55-.15.4.4 0 0 0-.15.55l1.92 3.32C3.97 11.39 1.69 14.6 1.27 18.4h21.46c-.42-3.8-2.7-7.01-6.22-8.66"/>
               </svg>
-              {{ locale === 'tk' ? 'Android Programmany Ýükle' : 'Скачать Android приложение' }}
+              <span class="apk-text">
+                <span class="apk-label">{{ locale === 'tk' ? 'Ýüklemek' : 'Скачать' }}</span>
+                <span class="apk-sub">{{ locale === 'tk' ? 'Android Programmany Ýükle' : 'Скачать Android приложение' }}</span>
+              </span>
             </a>
+            <NuxtLink to="/track" class="hero-btn-secondary">
+              {{ locale === 'tk' ? 'Sargyt Yzarla' : 'Отследить заказ' }}
+            </NuxtLink>
           </div>
         </div>
 
@@ -351,14 +362,45 @@ useHead({
 .hero-btn-secondary:hover { border-color: rgba(255,255,255,0.5); color: white; background: rgba(255,255,255,0.06); }
 
 .hero-btn-apk {
-  display: inline-flex; align-items: center; gap: 8px;
-  height: 48px; padding: 0 24px; border-radius: 50px;
-  border: 1.5px solid rgba(255,255,255,0.2);
-  color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 700;
+  position: relative;
+  display: inline-flex; align-items: center; gap: 10px;
+  height: 48px; padding: 0 22px; border-radius: 50px;
+  border: none;
+  color: white; font-family: var(--font-body);
   text-decoration: none; transition: all .2s;
-  background: rgba(255,255,255,0.05);
+  background: linear-gradient(135deg, #3DDC84, #196e3b);
+  box-shadow: 0 8px 24px rgba(61,220,132,0.35);
+  animation: apk-glow 2.4s ease-in-out infinite;
 }
-.hero-btn-apk:hover { border-color: #22C55E; color: #22C55E; background: rgba(34,197,94,0.08); }
+.hero-btn-apk:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(61,220,132,0.55);
+}
+.apk-text { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.apk-label { font-size: 13px; font-weight: 800; }
+.apk-sub   { font-size: 10px; font-weight: 600; opacity: .85; letter-spacing: .03em; }
+
+.apk-pulse-dot {
+  position: absolute; top: -4px; right: -4px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #FF8C00;
+  box-shadow: 0 0 0 0 rgba(255,140,0,0.6);
+  animation: apk-pulse 1.8s ease-out infinite;
+}
+
+@keyframes apk-glow {
+  0%, 100% { box-shadow: 0 8px 24px rgba(61,220,132,0.35); }
+  50%      { box-shadow: 0 8px 32px rgba(61,220,132,0.6); }
+}
+@keyframes apk-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(255,140,0,0.6); }
+  70%  { box-shadow: 0 0 0 8px rgba(255,140,0,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,140,0,0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-btn-apk, .apk-pulse-dot { animation: none; }
+}
 .hero-stats { display: flex; align-items: center; gap: 20px; padding-top: 8px; }
 .hero-stat  { display: flex; flex-direction: column; gap: 2px; }
 .hero-stat strong { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: white; }
