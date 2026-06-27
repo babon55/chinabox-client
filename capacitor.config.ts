@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'ChinaExpress',
   webDir: '.output/public',
   server: {
-    url: 'https://chinabox-client.vercel.app',
+    url: 'https://hytayexpress.vercel.app',
     cleartext: true,
     androidScheme: 'https',
   },
