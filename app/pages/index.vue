@@ -129,6 +129,11 @@ onMounted(() => {
               </span>
             </a>
             <NuxtLink to="/track" class="hero-btn-secondary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                <path d="M11 8v3l2 2" stroke-linecap="round"/>
+              </svg>
               {{ locale === 'tk' ? 'Sargyt Yzarla' : 'Отследить заказ' }}
             </NuxtLink>
           </div>
@@ -352,14 +357,6 @@ onMounted(() => {
   transition: all .2s; box-shadow: 0 8px 24px rgba(232,160,32,0.35);
 }
 .hero-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(232,160,32,0.5); }
-.hero-btn-secondary {
-  display: inline-flex; align-items: center;
-  height: 48px; padding: 0 24px; border-radius: 50px;
-  border: 1.5px solid rgba(255,255,255,0.2);
-  color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 700; text-decoration: none;
-  transition: all .2s;
-}
-.hero-btn-secondary:hover { border-color: rgba(255,255,255,0.5); color: white; background: rgba(255,255,255,0.06); }
 
 .hero-btn-apk {
   position: relative;
@@ -486,6 +483,24 @@ onMounted(() => {
 .product-btn:disabled { background: var(--border); color: var(--subtle); cursor: not-allowed; }
 /* ✅ Green flash when item is added */
 .product-btn.added { background: #22C55E; }
+
+.hero-btn-secondary {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 48px; padding: 0 24px; border-radius: 50px;
+  border: 1.5px solid rgba(245,230,200,0.4);
+  background: rgba(245,230,200,0.95);
+  color: #4a3a1a; font-size: 14px; font-weight: 700;
+  font-family: var(--font-body); text-decoration: none;
+  transition: all .2s;
+  box-shadow: 0 8px 24px rgba(245,230,200,0.15);
+}
+.hero-btn-secondary svg { stroke: #4a3a1a; }
+.hero-btn-secondary:hover {
+  background: rgb(245,230,200);
+  border-color: rgba(232,160,32,0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(232,160,32,0.25);
+}
 
 /* ══ RESPONSIVE ══ */
 @media (max-width: 1024px) {
