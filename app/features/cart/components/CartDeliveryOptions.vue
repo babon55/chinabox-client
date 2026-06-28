@@ -10,7 +10,7 @@
         <span class="d-icon">🚚</span>
         <span class="d-info">
           <span class="d-name">{{ t.deliverySimple }}</span>
-          <span class="d-days">15–30 {{ t.days }}</span>
+          <span class="d-days">25–35 {{ t.days }}</span>
         </span>
         <span class="d-rate">60 TMT/kg</span>
       </button>
